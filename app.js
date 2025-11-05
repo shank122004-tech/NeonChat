@@ -64,10 +64,12 @@ const elements = {
     newChatModal: document.getElementById('new-chat-modal'),
     newGroupModal: document.getElementById('new-group-modal'),
     profileModal: document.getElementById('profile-modal'),
+    profilePicModal: document.getElementById('profile-pic-modal'),
     purchaseModal: document.getElementById('purchase-modal'),
     
     // Close Modal Buttons
     closeModalBtns: document.querySelectorAll('.close-modal'),
+    closeProfilePicBtn: document.querySelector('.close-profile-pic'),
     
     // Settings
     settingsTabs: document.querySelectorAll('.settings-tab'),
@@ -133,14 +135,17 @@ const elements = {
     myAvatarsGrid: document.getElementById('my-avatars-grid'),
     ownedAvatarsCount: document.getElementById('owned-avatars-count'),
     
-    // Coins
-    userCoins: document.getElementById('user-coins'),
-    settingsCoins: document.getElementById('settings-coins'),
+    // Balance
+    userBalance: document.getElementById('user-balance'),
+    settingsBalance: document.getElementById('settings-balance'),
     
     // Purchase
     purchaseDetails: document.getElementById('purchase-details'),
     confirmPurchaseBtn: document.getElementById('confirm-purchase-btn'),
-    cancelPurchaseBtn: document.getElementById('cancel-purchase-btn')
+    cancelPurchaseBtn: document.getElementById('cancel-purchase-btn'),
+    
+    // Profile Picture Viewer
+    fullscreenProfilePic: document.getElementById('fullscreen-profile-pic')
 };
 
 // Initialize App
@@ -150,6 +155,28 @@ function initApp() {
     setupAuthStateListener();
     initializeAvatars();
     initializeStickers();
+    
+    // Add mobile-specific optimizations
+    addMobileOptimizations();
+}
+
+// Add mobile optimizations
+function addMobileOptimizations() {
+    // Prevent zoom on input focus
+    document.addEventListener('touchstart', function() {}, {passive: true});
+    
+    // Handle viewport height on mobile
+    function setVH() {
+        let vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    
+    setVH();
+    window.addEventListener('resize', setVH);
+    window.addEventListener('orientationchange', setVH);
+    
+    // Prevent pull-to-refresh on mobile
+    document.body.style.overscrollBehavior = 'none';
 }
 
 // Setup Event Listeners
@@ -178,6 +205,11 @@ function setupEventListeners() {
     // Close Modals
     elements.closeModalBtns.forEach(btn => {
         btn.addEventListener('click', closeAllModals);
+    });
+    
+    // Close Profile Picture Modal
+    elements.closeProfilePicBtn.addEventListener('click', () => {
+        elements.profilePicModal.classList.remove('active');
     });
     
     // Settings Tabs
@@ -239,6 +271,13 @@ function setupEventListeners() {
         elements.purchaseModal.classList.remove('active');
     });
     
+    // Profile Picture Click Events
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('clickable-profile-pic')) {
+            openProfilePictureViewer(e.target.src);
+        }
+    });
+    
     // Close modals when clicking outside
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.profile-menu') && !e.target.closest('.profile-icon')) {
@@ -288,6 +327,54 @@ function createNeonLights() {
     }
 }
 
+// Open Profile Picture Viewer
+function openProfilePictureViewer(imageSrc) {
+    elements.fullscreenProfilePic.src = imageSrc;
+    elements.profilePicModal.classList.add('active');
+    createProfilePicNeonLights();
+}
+
+// Create Neon Lights for Profile Picture Viewer
+function createProfilePicNeonLights() {
+    const container = document.querySelector('.profile-pic-neon-lights');
+    container.innerHTML = '';
+    
+    for (let i = 0; i < 12; i++) {
+        const light = document.createElement('div');
+        light.className = 'profile-pic-light';
+        light.style.position = 'absolute';
+        light.style.width = '20px';
+        light.style.height = '20px';
+        light.style.borderRadius = '50%';
+        light.style.background = `hsl(${i * 30}, 100%, 50%)`;
+        light.style.boxShadow = `0 0 20px hsl(${i * 30}, 100%, 50%)`;
+        light.style.animation = `floatProfileLight 4s ease-in-out infinite`;
+        light.style.animationDelay = `${i * 0.3}s`;
+        light.style.left = `${50 + 40 * Math.cos((i * 30) * Math.PI / 180)}%`;
+        light.style.top = `${50 + 40 * Math.sin((i * 30) * Math.PI / 180)}%`;
+        container.appendChild(light);
+    }
+    
+    // Add CSS for animation if not already added
+    if (!document.getElementById('profile-pic-light-animation')) {
+        const style = document.createElement('style');
+        style.id = 'profile-pic-light-animation';
+        style.textContent = `
+            @keyframes floatProfileLight {
+                0%, 100% {
+                    transform: translate(-50%, -50%) scale(1);
+                    opacity: 0.7;
+                }
+                50% {
+                    transform: translate(-50%, -50%) scale(1.5);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
 // Firebase Auth State Listener
 function setupAuthStateListener() {
     auth.onAuthStateChanged(async (user) => {
@@ -322,7 +409,7 @@ async function ensureUserDocument(user) {
             groups: [],
             avatars: [],
             stickers: [],
-            coins: 100,
+            balance: 100,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
     } else {
@@ -357,17 +444,17 @@ async function loadUserData() {
             userStickers = userData.stickers || [];
             
             updateProfileView(userData);
-            updateCoinsDisplay(userData.coins || 100);
+            updateBalanceDisplay(userData.balance || 100);
         }
     } catch (error) {
         console.error('Error loading user data:', error);
     }
 }
 
-// Update Coins Display
-function updateCoinsDisplay(coins) {
-    if (elements.userCoins) elements.userCoins.textContent = coins;
-    if (elements.settingsCoins) elements.settingsCoins.textContent = coins;
+// Update Balance Display
+function updateBalanceDisplay(balance) {
+    if (elements.userBalance) elements.userBalance.textContent = `$${balance}`;
+    if (elements.settingsBalance) elements.settingsBalance.textContent = `$${balance}`;
 }
 
 // Setup Realtime Listeners
@@ -381,7 +468,7 @@ function setupRealtimeListeners() {
                 const userData = doc.data();
                 updateProfileElements(currentUser);
                 updateProfileView(userData);
-                updateCoinsDisplay(userData.coins || 100);
+                updateBalanceDisplay(userData.balance || 100);
             }
         });
     
@@ -707,7 +794,7 @@ function updateUsersList(userDocs) {
         const userItem = document.createElement('div');
         userItem.className = 'contact-item';
         userItem.innerHTML = `
-            <img src="${user.avatar}" alt="${user.name}">
+            <img src="${user.avatar}" alt="${user.name}" class="clickable-profile-pic">
             <div class="contact-info">
                 <h4>${user.name}</h4>
                 <p>${user.email}</p>
@@ -836,7 +923,7 @@ function updateChatsList(contactDocs) {
         const chatItem = document.createElement('div');
         chatItem.className = 'chat-item';
         chatItem.innerHTML = `
-            <img src="${contact.avatar}" alt="${contact.name}">
+            <img src="${contact.avatar}" alt="${contact.name}" class="clickable-profile-pic">
             <div class="chat-info">
                 <h4>${contact.name}</h4>
                 <p>${contact.status === 'online' ? 'Online' : 'Offline'}</p>
@@ -876,7 +963,7 @@ function updateGroupMembersList(userDocs) {
         memberItem.className = 'contact-item';
         memberItem.innerHTML = `
             <input type="checkbox" id="member-${doc.id}" value="${doc.id}">
-            <img src="${user.avatar}" alt="${user.name}">
+            <img src="${user.avatar}" alt="${user.name}" class="clickable-profile-pic">
             <div class="contact-info">
                 <h4>${user.name}</h4>
                 <p>${user.email}</p>
@@ -1055,7 +1142,7 @@ function updateContactsList(contactDocs) {
         const contactItem = document.createElement('div');
         contactItem.className = 'contact-item';
         contactItem.innerHTML = `
-            <img src="${contact.avatar}" alt="${contact.name}">
+            <img src="${contact.avatar}" alt="${contact.name}" class="clickable-profile-pic">
             <div class="contact-info">
                 <h4>${contact.name}</h4>
                 <p>${contact.email}</p>
@@ -1160,8 +1247,8 @@ function loadAvatarsStore(category = 'all') {
         const avatarItem = document.createElement('div');
         avatarItem.className = `avatar-item ${isOwned ? 'owned' : ''} ${avatar.category === 'premium' ? 'premium' : ''}`;
         avatarItem.innerHTML = `
-            <img src="${avatar.url}" alt="${avatar.name}">
-            <span>${isOwned ? 'OWNED' : (avatar.category === 'free' ? 'FREE' : `${avatar.price} coins`)}</span>
+            <img src="${avatar.url}" alt="${avatar.name}" class="clickable-profile-pic">
+            <span>${isOwned ? 'OWNED' : (avatar.category === 'free' ? 'FREE' : `$${avatar.price}`)}</span>
         `;
         
         if (!isOwned) {
@@ -1192,7 +1279,7 @@ function loadMyAvatars() {
         const avatarItem = document.createElement('div');
         avatarItem.className = 'avatar-item owned';
         avatarItem.innerHTML = `
-            <img src="${avatar.url}" alt="${avatar.name}">
+            <img src="${avatar.url}" alt="${avatar.name}" class="clickable-profile-pic">
             <span>OWNED</span>
         `;
         avatarItem.addEventListener('click', () => setUserAvatar(avatar.url));
@@ -1233,14 +1320,15 @@ function initializeStickers() {
         { id: 6, text: '👍', name: 'Thumbs Up', category: 'free', price: 0 },
         { id: 7, text: '👋', name: 'Wave', category: 'free', price: 0 },
         { id: 8, text: '💯', name: '100', category: 'free', price: 0 },
-        { id: 9, text: '😎', name: 'Cool', category: 'premium', price: 25 },
-        { id: 10, text: '🤩', name: 'Star Eyes', category: 'premium', price: 25 },
-        { id: 11, text: '🥳', name: 'Celebration', category: 'premium', price: 25 },
-        { id: 12, text: '😍', name: 'Love', category: 'premium', price: 25 },
-        { id: 13, text: '🤗', name: 'Hug', category: 'premium', price: 25 },
-        { id: 14, text: '😇', name: 'Angel', category: 'premium', price: 25 },
-        { id: 15, text: '🤠', name: 'Cowboy', category: 'premium', price: 25 },
-        { id: 16, text: '🥰', name: 'Smile Love', category: 'premium', price: 25 }
+        { id: 9, text: '😎', name: 'Cool', category: 'premium', price: 5 },
+        { id: 10, text: '🤩', name: 'Star Eyes', category: 'premium', price: 5 },
+        { id: 11, text: '🥳', name: 'Celebration', category: 'premium', price: 5 },
+        { id: 12, text: '😍', name: 'Love', category: 'premium', price: 5 },
+        { id: 13, text: '🤗', name: 'Hug', category: 'premium', price: 5 },
+        { id: 14, text: '😇', name: 'Angel', category: 'premium', price: 5 },
+        { id: 15, text: '🤠', name: 'Cowboy', category: 'premium', price: 5 },
+        { id: 16, text: '🥰', name: 'Smile Love', category: 'premium', price: 5 }
+        
     ];
     
     localStorage.setItem('neonchat_stickers', JSON.stringify(stickers));
@@ -1276,7 +1364,7 @@ function loadStickersStore(category = 'all') {
         stickerItem.innerHTML = `
             <div class="sticker-circle">${sticker.text}</div>
             <div class="sticker-price ${priceClass}">
-                ${isOwned ? 'OWNED' : (sticker.category === 'free' ? 'FREE' : `${sticker.price} coins`)}
+                ${isOwned ? 'OWNED' : (sticker.category === 'free' ? 'FREE' : `$${sticker.price}`)}
             </div>
             <div class="sticker-name">${sticker.name}</div>
         `;
@@ -1358,7 +1446,7 @@ function showPurchaseModal(item, type) {
             <h3 style="text-align: center; margin-bottom: 0.5rem;">${item.name}</h3>
             <p style="text-align: center; color: #aaa; margin-bottom: 1rem;">${type === 'avatar' ? 'Premium Avatar' : 'Emoji Sticker'}</p>
             <div style="text-align: center; font-size: 1.2rem; color: ${item.category === 'free' ? '#00ff00' : '#ffaa00'}; margin-bottom: 1rem;">
-                ${item.category === 'free' ? 'FREE' : `${item.price} coins`}
+                ${item.category === 'free' ? 'FREE' : `$${item.price}`}
             </div>
         </div>
     `;
@@ -1372,21 +1460,21 @@ async function confirmPurchase() {
     try {
         const userDoc = await db.collection('users').doc(currentUser.uid).get();
         const userData = userDoc.data();
-        const userCoins = userData.coins || 0;
+        const userBalance = userData.balance || 0;
         
         if (currentPurchaseItem.category === 'free') {
             await addToCollection(currentPurchaseItem);
             alert(`${currentPurchaseItem.type === 'avatar' ? 'Avatar' : 'Sticker'} added to your collection!`);
         } else {
-            if (userCoins >= currentPurchaseItem.price) {
+            if (userBalance >= currentPurchaseItem.price) {
                 await db.collection('users').doc(currentUser.uid).update({
-                    coins: userCoins - currentPurchaseItem.price
+                    balance: userBalance - currentPurchaseItem.price
                 });
                 
                 await addToCollection(currentPurchaseItem);
-                alert(`Purchase successful! ${currentPurchaseItem.price} coins deducted.`);
+                alert(`Purchase successful! $${currentPurchaseItem.price} deducted from your balance.`);
             } else {
-                alert(`Not enough coins! You need ${currentPurchaseItem.price} coins but only have ${userCoins}.`);
+                alert(`Not enough balance! You need $${currentPurchaseItem.price} but only have $${userBalance}.`);
                 return;
             }
         }
