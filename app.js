@@ -874,26 +874,58 @@ function renderMessage(message) {
 }
 
 async function sendMessage() {
-    const text = elements.messageInput.value.trim();
-    if (!text || !currentChatId) return;
+  const text = elements.messageInput.value.trim();
+  if (!text) return;
 
-    const message = {
-        senderId: currentUser.uid,
-        text: text,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        type: 'text'
+  // ✅ If it's a group chat
+  if (currentChatType === "group") {
+    const messageData = {
+      text,
+      senderId: auth.currentUser.uid,
+      senderName: currentUser.name || auth.currentUser.displayName,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      type: "text",
     };
 
-    await db.collection('chats').doc(currentChatId)
-        .collection('messages').add(message);
+    await db.collection("groups")
+            .doc(currentChatId)
+            .collection("messages")
+            .add(messageData);
 
-    await db.collection('chats').doc(currentChatId).update({
-        lastMessage: text,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    await db.collection("groups").doc(currentChatId).update({
+      lastMessage: `${messageData.senderName}: ${text}`,
+      lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
     });
 
-    elements.messageInput.value = '';
+    elements.messageInput.value = "";
+    return; // ✅ stop so it doesn't fall into 1-to-1 logic
+  }
+
+  // ✅ Otherwise normal one-to-one message flow
+  const chatId = currentChatId;
+  const messageData = {
+    text,
+    senderId: auth.currentUser.uid,
+    senderName: currentUser.name || auth.currentUser.displayName,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    type: "text",
+  };
+
+  await db.collection("chats")
+          .doc(chatId)
+          .collection("messages")
+          .add(messageData);
+
+  await db.collection("chats").doc(chatId).set({
+    members: [auth.currentUser.uid, currentPartnerId],
+    lastMessage: text,
+    lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+  }, { merge: true });
+
+  elements.messageInput.value = "";
 }
+
+
 
 
 function closeChatWindow() {
@@ -1036,6 +1068,7 @@ function loadGroups() {
     // Groups are loaded via realtime listener
 }
 
+
 function updateGroupsList(groupDocs) {
     const groupsList = elements.groupsList;
     groupsList.innerHTML = '';
@@ -1076,7 +1109,12 @@ async function openGroupChat(groupId, groupData) {
 }
 
 function loadGroupMessages() {
-    if (!currentChatId) return;
+    if (!currentChatId) {
+  console.error("Chat ID missing!");
+  alert("Cannot send message — chat not ready.");
+  return;
+}
+
     
     elements.messagesContainer.innerHTML = '';
     
@@ -1371,13 +1409,13 @@ function loadStickersStore(category = 'all') {
         const isOwned = userStickers.some(owned => owned.id === sticker.id);
         const priceClass = sticker.category === 'free' ? 'free' : 'premium';
         const stickerItem = document.createElement('div');
-        stickerItem.className = `sticker-store-item ${isOwned ? 'owned' : ''} ${sticker.category === 'premium' ? 'premium' : ''}`;
+        stickerItem.className = `sticker-store-item INR{isOwned ? 'owned' : ''} ${sticker.category === 'premium' ? 'premium' : ''}`;
         stickerItem.innerHTML = `
             <div class="sticker-circle">${sticker.text}</div>
             <div class="sticker-price ${priceClass}">
                 ${isOwned ? 'OWNED' : (sticker.category === 'free' ? 'FREE' : `$${sticker.price}`)}
             </div>
-            <div class="sticker-name">${sticker.name}</div>
+            <div class="sticker-name">INR{sticker.name}</div>
         `;
         
         if (!isOwned && category !== 'my-stickers') {
