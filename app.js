@@ -3,7 +3,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyDgjEZESPE0XEuoKO8F-mxnri3NT-ELjHw",
     authDomain: "neonchat-94f8c.firebaseapp.com",
     projectId: "neonchat-94f8c",
-    storageBucket: "neonchat-94f8c.firebasestorage.app",
+    storageBucket: "neonchat-94f8c.appspot.com",
     messagingSenderId: "165418216560",
     appId: "1:165418216560:web:954cca83e6b0231d9d98b5",
     measurementId: "G-CQHXN518JW"
@@ -815,7 +815,16 @@ async function startChat(partnerId, partnerData) {
     
     elements.chatWindow.classList.remove('hidden');
     closeAllModals();
-    
+    const chatRef = db.collection('chats').doc(currentChatId);
+const chatDoc = await chatRef.get();
+if (!chatDoc.exists) {
+    await chatRef.set({
+        users: [currentUser.uid, partnerId],
+        lastMessage: '',
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+}
+
     loadMessages();
 }
 
@@ -867,23 +876,25 @@ function renderMessage(message) {
 async function sendMessage() {
     const text = elements.messageInput.value.trim();
     if (!text || !currentChatId) return;
-    
-    try {
-        const message = {
-            text: text,
-            senderId: currentUser.uid,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            type: 'text'
-        };
-        
-        await db.collection('chats').doc(currentChatId).collection('messages').add(message);
-        elements.messageInput.value = '';
-        
-    } catch (error) {
-        console.error('Error sending message:', error);
-        alert('Error sending message. Please try again.');
-    }
+
+    const message = {
+        senderId: currentUser.uid,
+        text: text,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        type: 'text'
+    };
+
+    await db.collection('chats').doc(currentChatId)
+        .collection('messages').add(message);
+
+    await db.collection('chats').doc(currentChatId).update({
+        lastMessage: text,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    elements.messageInput.value = '';
 }
+
 
 function closeChatWindow() {
     elements.chatWindow.classList.add('hidden');
