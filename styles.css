@@ -4,6 +4,12 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    height: 100%;
+    overflow: hidden;
 }
 
 body {
@@ -11,8 +17,11 @@ body {
     color: #fff;
     overflow: hidden;
     height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
     width: 100vw;
     position: fixed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Screen Management */
@@ -498,7 +507,7 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
-.profile-icon img {
+.profile-icon img, .clickable-profile-pic {
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -506,6 +515,13 @@ body {
     border: 2px solid #ff00de;
     position: relative;
     z-index: 2;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.clickable-profile-pic:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px #ff00de;
 }
 
 .online-dot {
@@ -637,26 +653,51 @@ body {
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
-.user-coins {
+.user-balance {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 215, 0, 0.2);
+    background: rgba(0, 255, 0, 0.2);
     padding: 8px 12px;
     border-radius: 20px;
-    border: 1px solid #ffd700;
-    color: #ffd700;
+    border: 1px solid #00ff00;
+    color: #00ff00;
     font-weight: bold;
 }
 
-.user-coins i {
-    color: #ffd700;
+.user-balance i {
+    color: #00ff00;
 }
 
 .scrollable {
     flex: 1;
     overflow-y: auto;
     padding: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
+/* Enhanced Scrollable for Stickers */
+.sticker-store-container .scrollable {
+    padding: 0;
+}
+
+.sticker-store-container .scrollable::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sticker-store-container .scrollable::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.sticker-store-container .scrollable::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #ff00de, #00ffff);
+    border-radius: 4px;
+}
+
+.sticker-store-container .scrollable::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #ff00de, #00ffff, #ff5500);
 }
 
 /* Chat Items */
@@ -821,6 +862,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .message {
@@ -967,6 +1010,8 @@ body {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 5px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .sticker-item {
@@ -995,6 +1040,12 @@ body {
     border-bottom: 1px solid rgba(255, 0, 222, 0.3);
     overflow-x: auto;
     background: rgba(26, 26, 46, 0.8);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.sticker-categories-nav::-webkit-scrollbar {
+    display: none;
 }
 
 .sticker-category-btn {
@@ -1007,6 +1058,7 @@ body {
     font-size: 0.8rem;
     transition: all 0.3s ease;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .sticker-category-btn.active {
@@ -1020,6 +1072,8 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    height: 100%;
 }
 
 .stickers-grid {
@@ -1028,6 +1082,9 @@ body {
     gap: 15px;
     padding: 1rem;
     align-content: start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    height: 100%;
 }
 
 .sticker-store-item {
@@ -1125,6 +1182,7 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    padding: 1rem;
 }
 
 .modal.active {
@@ -1132,13 +1190,77 @@ body {
 }
 
 .modal-content {
-    width: 90%;
+    width: 100%;
     max-width: 500px;
     max-height: 80vh;
     background: rgba(10, 10, 22, 0.95);
     border-radius: 15px;
     overflow: hidden;
     position: relative;
+}
+
+/* Profile Picture Viewer */
+.profile-pic-viewer {
+    background: transparent;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-pic-fullscreen {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 0 50px #ff00de;
+}
+
+.profile-pic-fullscreen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.profile-pic-neon-lights {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, #ff00de, #00ffff, #ff5500, #00ff00, #ff00de);
+    animation: rotate 3s linear infinite;
+    z-index: -1;
+    filter: blur(10px);
+}
+
+.close-profile-pic {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    color: #ff00de;
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+    transition: all 0.3s ease;
+}
+
+.close-profile-pic:hover {
+    background: #ff00de;
+    color: #000;
+    box-shadow: 0 0 20px #ff00de;
 }
 
 /* Premium Settings Modal */
@@ -1227,6 +1349,7 @@ body {
     overflow-y: auto;
     position: relative;
     z-index: 2;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Settings Structure */
@@ -1312,16 +1435,16 @@ body {
     text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
 }
 
-.user-coins-display {
+.user-balance-display {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    background: rgba(255, 215, 0, 0.2);
+    background: rgba(0, 255, 0, 0.2);
     padding: 10px;
     border-radius: 10px;
-    border: 1px solid #ffd700;
-    color: #ffd700;
+    border: 1px solid #00ff00;
+    color: #00ff00;
     font-weight: bold;
     margin-bottom: 1rem;
 }
@@ -1409,6 +1532,8 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 15px;
     margin-top: 1rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .avatar-item {
@@ -1628,7 +1753,7 @@ body {
     font-style: italic;
 }
 
-/* Responsive Design */
+/* Enhanced Mobile Responsiveness */
 @media (max-width: 768px) {
     .neon-text {
         font-size: 2rem;
@@ -1669,6 +1794,41 @@ body {
     .achievements-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+    
+    .modal {
+        padding: 0.5rem;
+    }
+    
+    .modal-content {
+        max-height: 90vh;
+    }
+    
+    .chat-header {
+        padding: 0.5rem;
+    }
+    
+    .message-input-container {
+        padding: 0.5rem;
+    }
+    
+    .tab-header {
+        padding: 0.8rem;
+    }
+    
+    .sticker-store-item {
+        padding: 10px;
+    }
+    
+    .sticker-circle {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+    }
+    
+    .stickers-grid {
+        gap: 10px;
+        padding: 0.8rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1691,10 +1851,74 @@ body {
     
     .stickers-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 0.8rem;
     }
     
     .avatars-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .sticker-categories-nav {
+        padding: 0.8rem;
+    }
+    
+    .sticker-category-btn {
+        padding: 6px 12px;
+        font-size: 0.7rem;
+    }
+    
+    .app-nav {
+        height: 45px;
+    }
+    
+    .nav-item i {
+        font-size: 1rem;
+    }
+    
+    .nav-item span {
+        font-size: 0.6rem;
+    }
+    
+    .chat-item, .contact-item, .group-item {
+        padding: 10px;
+    }
+    
+    .chat-item img, .contact-item img, .group-item img {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .profile-pic-fullscreen {
+        width: 250px;
+        height: 250px;
+    }
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 768px) and (orientation: portrait) {
+    .app-main {
+        height: calc(100vh - 110px);
+    }
+    
+    .chat-window {
+        height: 100vh;
+    }
+    
+    .messages-container {
+        padding: 0.8rem;
+    }
+    
+    .message {
+        max-width: 90%;
+    }
+}
+
+/* Prevent zoom on input focus for iOS */
+@media screen and (max-width: 768px) {
+    input, select, textarea {
+        font-size: 16px;
     }
 }
 
@@ -1745,3 +1969,19 @@ body {
 .mt-2 { margin-top: 1rem; }
 .mb-1 { margin-bottom: 0.5rem; }
 .mb-2 { margin-bottom: 1rem; }
+
+/* Safe area insets for notch devices */
+@supports(padding: max(0px)) {
+    .app-header, .app-nav, .tab-header {
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+    }
+    
+    .app-header {
+        padding-top: max(0.8rem, env(safe-area-inset-top));
+    }
+    
+    .message-input-container {
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+}
