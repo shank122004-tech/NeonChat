@@ -2,10 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>NeonChat - Cyber Messaging</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff00de">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
 </head>
 <body>
     <!-- Splash Screen -->
@@ -101,7 +106,6 @@
                 <div class="profile-icon" id="profile-menu-toggle">
                     <img id="profile-pic" src="https://api.dicebear.com/7.x/adventurer/svg?seed=User" alt="Profile">
                     <span id="online-status" class="online-dot"></span>
-                    <i class="fas fa-caret-down"></i>
                 </div>
                 <div class="profile-menu" id="profile-menu">
                     <div class="menu-item" id="settings-btn">
@@ -176,9 +180,9 @@
             <div id="stickers-tab" class="tab-content">
                 <div class="tab-header">
                     <h3>Premium Sticker Store</h3>
-                    <div class="user-coins">
-                        <i class="fas fa-coins"></i>
-                        <span id="user-coins">100</span> coins
+                    <div class="user-balance">
+                        <i class="fas fa-wallet"></i>
+                        <span id="user-balance">100INR</span>
                     </div>
                 </div>
                 
@@ -204,7 +208,7 @@
             <div class="chat-header">
                 <button class="back-btn" id="back-to-chats"><i class="fas fa-arrow-left"></i></button>
                 <div class="chat-info">
-                    <img id="chat-avatar" src="" alt="Avatar">
+                    <img id="chat-avatar" src="" alt="Avatar" class="clickable-profile-pic">
                     <div>
                         <h4 id="chat-name">Loading...</h4>
                         <span id="chat-status">Online</span>
@@ -258,7 +262,7 @@
                     <h3>Profile Settings</h3>
                     <div class="profile-pic-upload">
                         <div class="profile-pic-container">
-                            <img id="settings-profile-pic" src="https://api.dicebear.com/7.x/adventurer/svg?seed=User" alt="Profile">
+                            <img id="settings-profile-pic" src="https://api.dicebear.com/7.x/adventurer/svg?seed=User" alt="Profile" class="clickable-profile-pic">
                             <div class="profile-lights"></div>
                         </div>
                         <input type="file" id="profile-pic-input" accept="image/*" style="display: none;">
@@ -291,9 +295,9 @@
                     <div id="avatars-settings" class="settings-panel active">
                         <h3>Premium Avatar Store</h3>
                         <p class="premium-subtitle">Buy exclusive neon avatars for your profile!</p>
-                        <div class="user-coins-display">
-                            <i class="fas fa-coins"></i>
-                            <span id="settings-coins">100</span> coins available
+                        <div class="user-balance-display">
+                            <i class="fas fa-wallet"></i>
+                            <span id="settings-balance">$100</span> available
                         </div>
                         <div class="avatar-categories">
                             <button class="avatar-category active" data-category="all">All</button>
@@ -471,6 +475,17 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Profile Picture Viewer -->
+    <div id="profile-pic-modal" class="modal">
+        <div class="modal-content profile-pic-viewer">
+            <div class="profile-pic-fullscreen">
+                <img id="fullscreen-profile-pic" src="" alt="Profile Picture">
+                <div class="profile-pic-neon-lights"></div>
+            </div>
+            <button class="close-profile-pic">&times;</button>
         </div>
     </div>
 
