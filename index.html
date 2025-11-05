@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeonChat - Cyber Messaging</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="screen active">
+        <div class="splash-neon-container">
+            <div class="neon-container">
+                <h1 class="neon-text">Neon<span>Chat</span></h1>
+                <p class="neon-subtitle">Connect in Cyber Style</p>
+            </div>
+            <div class="neon-lights"></div>
+            <div class="pulse-circles">
+                <div class="pulse-circle" style="animation-delay: 0s"></div>
+                <div class="pulse-circle" style="animation-delay: 1s"></div>
+                <div class="pulse-circle" style="animation-delay: 2s"></div>
+            </div>
+            <div class="scan-line"></div>
+            <div class="floating-neons"></div>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen">
+        <div class="auth-container">
+            <div class="neon-border">
+                <h2 class="neon-title">Login</h2>
+                <form id="login-form">
+                    <div class="input-group">
+                        <input type="email" id="login-email" placeholder="Email" required>
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="login-password" placeholder="Password" required>
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <button type="submit" class="neon-btn">Login</button>
+                </form>
+                <div class="auth-divider">
+                    <span>OR</span>
+                </div>
+                <button id="google-signin-btn" class="neon-btn google-btn">
+                    <i class="fab fa-google"></i> Sign in with Google
+                </button>
+                <p class="auth-switch">Don't have an account? <span id="show-signup">Sign Up</span></p>
+            </div>
+        </div>
+        <div class="neon-lights"></div>
+    </div>
+
+    <!-- Signup Screen -->
+    <div id="signup-screen" class="screen">
+        <div class="auth-container">
+            <div class="neon-border">
+                <h2 class="neon-title">Sign Up</h2>
+                <form id="signup-form">
+                    <div class="input-group">
+                        <input type="text" id="signup-name" placeholder="Full Name" required>
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="input-group">
+                        <input type="email" id="signup-email" placeholder="Email" required>
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="signup-password" placeholder="Password" required>
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <button type="submit" class="neon-btn">Sign Up</button>
+                </form>
+                <div class="auth-divider">
+                    <span>OR</span>
+                </div>
+                <button id="google-signup-btn" class="neon-btn google-btn">
+                    <i class="fab fa-google"></i> Sign up with Google
+                </button>
+                <p class="auth-switch">Already have an account? <span id="show-login">Login</span></p>
+            </div>
+        </div>
+        <div class="neon-lights"></div>
+    </div>
+
+    <!-- Main App Screen -->
+    <div id="app-screen" class="screen">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="search-container">
+                <div class="neon-search">
+                    <div class="search-neon-border"></div>
+                    <input type="text" id="search-input" placeholder="Search chats, contacts..." autocomplete="off">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+            <div class="profile-section">
+                <div class="profile-icon" id="profile-menu-toggle">
+                    <img id="profile-pic" src="https://api.dicebear.com/7.x/adventurer/svg?seed=User" alt="Profile">
+                    <span id="online-status" class="online-dot"></span>
+                    <i class="fas fa-caret-down"></i>
+                </div>
+                <div class="profile-menu" id="profile-menu">
+                    <div class="menu-item" id="settings-btn">
+                        <i class="fas fa-cog"></i> Settings
+                    </div>
+                    <div class="menu-item" id="profile-btn">
+                        <i class="fas fa-user"></i> My Profile
+                    </div>
+                    <div class="menu-item" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="app-nav">
+            <div class="nav-item active" data-tab="chats">
+                <i class="fas fa-comment"></i>
+                <span>Chats</span>
+            </div>
+            <div class="nav-item" data-tab="groups">
+                <i class="fas fa-users"></i>
+                <span>Groups</span>
+            </div>
+            <div class="nav-item" data-tab="contacts">
+                <i class="fas fa-address-book"></i>
+                <span>Contacts</span>
+            </div>
+            <div class="nav-item" data-tab="stickers">
+                <i class="fas fa-smile"></i>
+                <span>Stickers</span>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Chats Tab -->
+            <div id="chats-tab" class="tab-content active">
+                <div class="tab-header">
+                    <h3>Recent Chats</h3>
+                    <button class="neon-btn-small" id="new-chat-btn">+ New Chat</button>
+                </div>
+                <div class="chats-list scrollable" id="chats-list">
+                    <div class="no-chats">No chats yet. Start a new conversation!</div>
+                </div>
+            </div>
+
+            <!-- Groups Tab -->
+            <div id="groups-tab" class="tab-content">
+                <div class="tab-header">
+                    <h3>Your Groups</h3>
+                    <button class="neon-btn-small" id="new-group-btn">+ New Group</button>
+                </div>
+                <div class="groups-list scrollable" id="groups-list">
+                    <div class="no-groups">No groups yet. Create your first group!</div>
+                </div>
+            </div>
+
+            <!-- Contacts Tab -->
+            <div id="contacts-tab" class="tab-content">
+                <div class="tab-header">
+                    <h3>Contacts</h3>
+                    <button class="neon-btn-small" id="add-contact-btn">+ Add Contact</button>
+                </div>
+                <div class="contacts-list scrollable" id="contacts-list">
+                    <div class="no-contacts">No contacts yet. Add some friends!</div>
+                </div>
+            </div>
+
+            <!-- Stickers Tab -->
+            <div id="stickers-tab" class="tab-content">
+                <div class="tab-header">
+                    <h3>Premium Sticker Store</h3>
+                    <div class="user-coins">
+                        <i class="fas fa-coins"></i>
+                        <span id="user-coins">100</span> coins
+                    </div>
+                </div>
+                
+                <!-- Sticker Categories -->
+                <div class="sticker-categories-nav">
+                    <button class="sticker-category-btn active" data-category="all">All Stickers</button>
+                    <button class="sticker-category-btn" data-category="free">Free</button>
+                    <button class="sticker-category-btn" data-category="premium">Premium</button>
+                    <button class="sticker-category-btn" data-category="my-stickers">My Stickers</button>
+                </div>
+
+                <!-- Sticker Store -->
+                <div class="sticker-store-container">
+                    <div class="stickers-grid scrollable" id="stickers-grid">
+                        <!-- Stickers will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Chat Window -->
+        <div id="chat-window" class="chat-window hidden">
+            <div class="chat-header">
+                <button class="back-btn" id="back-to-chats"><i class="fas fa-arrow-left"></i></button>
+                <div class="chat-info">
+                    <img id="chat-avatar" src="" alt="Avatar">
+                    <div>
+                        <h4 id="chat-name">Loading...</h4>
+                        <span id="chat-status">Online</span>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="action-btn" id="chat-info-btn">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="messages-container scrollable" id="messages-container">
+                <div class="no-chats">Select a chat to start messaging</div>
+            </div>
+            <div class="message-input-container">
+                <div class="attachment-options">
+                    <button class="attachment-btn" id="sticker-attachment-btn">
+                        <i class="fas fa-smile"></i>
+                    </button>
+                </div>
+                <div class="message-input">
+                    <input type="text" id="message-input" placeholder="Type a message...">
+                    <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+            
+            <!-- Sticker Panel -->
+            <div class="sticker-panel hidden" id="sticker-panel">
+                <div class="sticker-panel-header">
+                    <h4>My Stickers</h4>
+                    <button class="close-panel-btn" id="close-sticker-panel">&times;</button>
+                </div>
+                <div class="stickers-container scrollable" id="stickers-container">
+                    <div class="no-stickers">No stickers available. Buy some sticker packs!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content neon-border premium-settings">
+            <div class="premium-neon-lights"></div>
+            <div class="modal-header">
+                <h2>Premium Settings</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Profile Settings at Top -->
+                <div class="profile-settings-section">
+                    <h3>Profile Settings</h3>
+                    <div class="profile-pic-upload">
+                        <div class="profile-pic-container">
+                            <img id="settings-profile-pic" src="https://api.dicebear.com/7.x/adventurer/svg?seed=User" alt="Profile">
+                            <div class="profile-lights"></div>
+                        </div>
+                        <input type="file" id="profile-pic-input" accept="image/*" style="display: none;">
+                        <button id="upload-pic-btn" class="neon-btn-small">Change Picture</button>
+                    </div>
+                    <form id="profile-form">
+                        <div class="input-group">
+                            <input type="text" id="profile-name" placeholder="Your Name" required>
+                        </div>
+                        <div class="input-group">
+                            <input type="email" id="profile-email" placeholder="Your Email" required readonly>
+                        </div>
+                        <div class="input-group">
+                            <textarea id="profile-bio" placeholder="About you..."></textarea>
+                        </div>
+                        <button type="submit" class="neon-btn">Save Changes</button>
+                    </form>
+                </div>
+
+                <!-- Other Settings Sections -->
+                <div class="settings-tabs">
+                    <div class="settings-tab active" data-tab="avatars">Avatar Store</div>
+                    <div class="settings-tab" data-tab="my-avatars">My Avatars</div>
+                    <div class="settings-tab" data-tab="privacy">Privacy</div>
+                    <div class="settings-tab" data-tab="notifications">Notifications</div>
+                </div>
+                
+                <div class="settings-content">
+                    <!-- Avatar Store -->
+                    <div id="avatars-settings" class="settings-panel active">
+                        <h3>Premium Avatar Store</h3>
+                        <p class="premium-subtitle">Buy exclusive neon avatars for your profile!</p>
+                        <div class="user-coins-display">
+                            <i class="fas fa-coins"></i>
+                            <span id="settings-coins">100</span> coins available
+                        </div>
+                        <div class="avatar-categories">
+                            <button class="avatar-category active" data-category="all">All</button>
+                            <button class="avatar-category" data-category="free">Free</button>
+                            <button class="avatar-category" data-category="premium">Premium</button>
+                        </div>
+                        <div class="avatars-grid scrollable" id="avatars-grid">
+                            <!-- Avatars will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- My Avatars -->
+                    <div id="my-avatars-settings" class="settings-panel">
+                        <h3>My Avatar Collection</h3>
+                        <div class="collection-stats">
+                            <span class="stat-badge"><i class="fas fa-user-circle"></i> <span id="owned-avatars-count">0</span> Avatars</span>
+                        </div>
+                        <div class="avatars-grid scrollable" id="my-avatars-grid">
+                            <div class="no-avatars">You don't have any avatars yet. Visit the store to buy some!</div>
+                        </div>
+                    </div>
+
+                    <!-- Privacy Settings -->
+                    <div id="privacy-settings" class="settings-panel">
+                        <h3>Privacy Settings</h3>
+                        <div class="privacy-options">
+                            <div class="privacy-option">
+                                <label>
+                                    <input type="checkbox" id="online-status-toggle" checked>
+                                    Show online status
+                                </label>
+                            </div>
+                            <div class="privacy-option">
+                                <label>
+                                    <input type="checkbox" id="read-receipts-toggle" checked>
+                                    Read receipts
+                                </label>
+                            </div>
+                            <div class="privacy-option">
+                                <label>
+                                    <input type="checkbox" id="profile-visibility-toggle" checked>
+                                    Profile visibility
+                                </label>
+                            </div>
+                        </div>
+                        <button class="neon-btn" id="save-privacy-btn">Save Privacy Settings</button>
+                    </div>
+
+                    <!-- Notification Settings -->
+                    <div id="notifications-settings" class="settings-panel">
+                        <h3>Notification Settings</h3>
+                        <div class="notification-options">
+                            <div class="notification-option">
+                                <label>
+                                    <input type="checkbox" id="message-notifications" checked>
+                                    Message notifications
+                                </label>
+                            </div>
+                            <div class="notification-option">
+                                <label>
+                                    <input type="checkbox" id="group-notifications" checked>
+                                    Group notifications
+                                </label>
+                            </div>
+                            <div class="notification-option">
+                                <label>
+                                    <input type="checkbox" id="sound-notifications" checked>
+                                    Sound notifications
+                                </label>
+                            </div>
+                        </div>
+                        <button class="neon-btn" id="save-notifications-btn">Save Notification Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Chat Modal -->
+    <div id="new-chat-modal" class="modal">
+        <div class="modal-content neon-border">
+            <div class="modal-header">
+                <h2>Start New Chat</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <input type="text" id="search-user" placeholder="Search users..." autocomplete="off">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="users-list scrollable" id="users-list">
+                    <div class="no-contacts">No other users found.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Group Modal -->
+    <div id="new-group-modal" class="modal">
+        <div class="modal-content neon-border">
+            <div class="modal-header">
+                <h2>Create New Group</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <input type="text" id="group-name" placeholder="Group Name" required>
+                </div>
+                <div class="input-group">
+                    <textarea id="group-description" placeholder="Group Description"></textarea>
+                </div>
+                <div class="input-group">
+                    <h4>Select Members</h4>
+                    <div class="members-list scrollable" id="group-members-list">
+                        <!-- Members will be populated here -->
+                    </div>
+                </div>
+                <button class="neon-btn" id="create-group-btn">Create Group</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile View Modal -->
+    <div id="profile-modal" class="modal">
+        <div class="modal-content neon-border">
+            <div class="modal-header">
+                <h2>Profile</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-view">
+                    <div class="profile-pic-container large">
+                        <img id="view-profile-pic" src="https://api.dicebear.com/7.x/adventurer/svg?seed=User" alt="Profile">
+                        <div class="profile-lights"></div>
+                    </div>
+                    <h3 id="view-profile-name">User Name</h3>
+                    <p id="view-profile-email">user@example.com</p>
+                    <p id="view-profile-bio" class="profile-bio">No bio yet</p>
+                    
+                    <div class="profile-stats">
+                        <div class="stat">
+                            <span id="view-contacts-count">0</span>
+                            <small>Contacts</small>
+                        </div>
+                        <div class="stat">
+                            <span id="view-groups-count">0</span>
+                            <small>Groups</small>
+                        </div>
+                        <div class="stat">
+                            <span id="view-avatars-count">0</span>
+                            <small>Avatars</small>
+                        </div>
+                        <div class="stat">
+                            <span id="view-stickers-count">0</span>
+                            <small>Stickers</small>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-achievements">
+                        <h4>Achievements</h4>
+                        <div class="achievements-grid">
+                            <div class="achievement-item">
+                                <i class="fas fa-comment"></i>
+                                <span>First Message</span>
+                            </div>
+                            <div class="achievement-item">
+                                <i class="fas fa-users"></i>
+                                <span>Group Creator</span>
+                            </div>
+                            <div class="achievement-item">
+                                <i class="fas fa-store"></i>
+                                <span>First Purchase</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Purchase Confirmation Modal -->
+    <div id="purchase-modal" class="modal">
+        <div class="modal-content neon-border">
+            <div class="modal-header">
+                <h2>Confirm Purchase</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="purchase-details">
+                    <!-- Purchase details will be populated here -->
+                </div>
+                <div class="purchase-actions">
+                    <button class="neon-btn" id="confirm-purchase-btn">Confirm Purchase</button>
+                    <button class="neon-btn cancel-btn" id="cancel-purchase-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
