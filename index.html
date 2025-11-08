@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>NeonChat - Cyber Messaging</title>
@@ -17,18 +16,21 @@
     <!-- Splash Screen -->
     <div id="splash-screen" class="screen active">
         <div class="splash-neon-container">
-            <div class="neon-container">
+            <div class="neon-lights-container">
+                <div class="neon-light" style="top:10%; left:20%; animation-delay:0s"></div>
+                <div class="neon-light" style="top:30%; left:80%; animation-delay:1s"></div>
+                <div class="neon-light" style="top:60%; left:10%; animation-delay:2s"></div>
+                <div class="neon-light" style="top:80%; left:70%; animation-delay:3s"></div>
+                <div class="neon-light" style="top:20%; left:50%; animation-delay:4s"></div>
+                <div class="neon-light" style="top:70%; left:90%; animation-delay:5s"></div>
+                <div class="neon-light" style="top:40%; left:30%; animation-delay:6s"></div>
+                <div class="neon-light" style="top:90%; left:40%; animation-delay:7s"></div>
+            </div>
+            <div class="neon-circle-center">
                 <h1 class="neon-text">Neon<span>Chat</span></h1>
                 <p class="neon-subtitle">Connect in Cyber Style</p>
             </div>
-            <div class="neon-lights"></div>
-            <div class="pulse-circles">
-                <div class="pulse-circle" style="animation-delay: 0s"></div>
-                <div class="pulse-circle" style="animation-delay: 1s"></div>
-                <div class="pulse-circle" style="animation-delay: 2s"></div>
-            </div>
             <div class="scan-line"></div>
-            <div class="floating-neons"></div>
         </div>
     </div>
 
@@ -48,16 +50,9 @@
                     </div>
                     <button type="submit" class="neon-btn">Login</button>
                 </form>
-                <div class="auth-divider">
-                    <span>OR</span>
-                </div>
-                <button id="google-signin-btn" class="neon-btn google-btn">
-                    <i class="fab fa-google"></i> Sign in with Google
-                </button>
                 <p class="auth-switch">Don't have an account? <span id="show-signup">Sign Up</span></p>
             </div>
         </div>
-        <div class="neon-lights"></div>
     </div>
 
     <!-- Signup Screen -->
@@ -71,6 +66,10 @@
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="input-group">
+                        <input type="text" id="signup-username" placeholder="Username" required>
+                        <i class="fas fa-at"></i>
+                    </div>
+                    <div class="input-group">
                         <input type="email" id="signup-email" placeholder="Email" required>
                         <i class="fas fa-envelope"></i>
                     </div>
@@ -78,18 +77,15 @@
                         <input type="password" id="signup-password" placeholder="Password" required>
                         <i class="fas fa-lock"></i>
                     </div>
+                    <div class="input-group">
+                        <input type="text" id="referral-code" placeholder="Referral Code (Optional)">
+                        <i class="fas fa-gift"></i>
+                    </div>
                     <button type="submit" class="neon-btn">Sign Up</button>
                 </form>
-                <div class="auth-divider">
-                    <span>OR</span>
-                </div>
-                <button id="google-signup-btn" class="neon-btn google-btn">
-                    <i class="fab fa-google"></i> Sign up with Google
-                </button>
                 <p class="auth-switch">Already have an account? <span id="show-login">Login</span></p>
             </div>
         </div>
-        <div class="neon-lights"></div>
     </div>
 
     <!-- Main App Screen -->
@@ -115,12 +111,31 @@
                     <div class="menu-item" id="profile-btn">
                         <i class="fas fa-user"></i> My Profile
                     </div>
+                    <div class="menu-item" id="referral-btn">
+                        <i class="fas fa-gift"></i> Refer & Earn
+                    </div>
+                    <div class="menu-item" id="stories-btn">
+                        <i class="fas fa-circle"></i> My Stories
+                    </div>
                     <div class="menu-item" id="logout-btn">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </div>
                 </div>
             </div>
         </header>
+
+        <!-- Stories Section -->
+        <div class="stories-container">
+            <div class="stories-scroll">
+                <div class="story-item add-story">
+                    <div class="story-circle">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <span>story coming soon</span>
+                </div>
+                <!-- Stories will be populated here -->
+            </div>
+        </div>
 
         <!-- Navigation -->
         <nav class="app-nav">
@@ -135,10 +150,6 @@
             <div class="nav-item" data-tab="contacts">
                 <i class="fas fa-address-book"></i>
                 <span>Contacts</span>
-            </div>
-            <div class="nav-item" data-tab="stickers">
-                <i class="fas fa-smile"></i>
-                <span>Stickers</span>
             </div>
         </nav>
 
@@ -172,34 +183,14 @@
                     <h3>Contacts</h3>
                     <button class="neon-btn-small" id="add-contact-btn">+ Add Contact</button>
                 </div>
+                <div class="suggested-contacts">
+                    <h4>Suggested Friends</h4>
+                    <div class="suggested-list scrollable" id="suggested-contacts-list">
+                        <!-- Suggested contacts will be populated here -->
+                    </div>
+                </div>
                 <div class="contacts-list scrollable" id="contacts-list">
                     <div class="no-contacts">No contacts yet. Add some friends!</div>
-                </div>
-            </div>
-
-            <!-- Stickers Tab -->
-            <div id="stickers-tab" class="tab-content">
-                <div class="tab-header">
-                    <h3>Premium Sticker Store</h3>
-                    <div class="user-balance">
-                        <i class="fas fa-wallet"></i>
-                        <span id="user-balance">100</span>
-                    </div>
-                </div>
-                
-                <!-- Sticker Categories -->
-                <div class="sticker-categories-nav">
-                    <button class="sticker-category-btn active" data-category="all">All Stickers</button>
-                    <button class="sticker-category-btn" data-category="free">Free</button>
-                    <button class="sticker-category-btn" data-category="premium">Premium</button>
-                    <button class="sticker-category-btn" data-category="my-stickers">My Stickers</button>
-                </div>
-
-                <!-- Sticker Store -->
-                <div class="sticker-store-container">
-                    <div class="stickers-grid scrollable" id="stickers-grid">
-                        <!-- Stickers will be populated here -->
-                    </div>
                 </div>
             </div>
         </main>
@@ -213,6 +204,9 @@
                     <div>
                         <h4 id="chat-name">Loading...</h4>
                         <span id="chat-status">Online</span>
+                        <div id="typing-indicator" class="typing-indicator hidden">
+                            <span>typing...</span>
+                        </div>
                     </div>
                 </div>
                 <div class="chat-actions">
@@ -226,6 +220,12 @@
             </div>
             <div class="message-input-container">
                 <div class="attachment-options">
+                    <button class="attachment-btn" id="media-attachment-btn">
+                        <i class="fas fa-image"></i>
+                    </button>
+                    <button class="attachment-btn" id="file-attachment-btn">
+                        <i class="fas fa-file"></i>
+                    </button>
                     <button class="attachment-btn" id="sticker-attachment-btn">
                         <i class="fas fa-smile"></i>
                     </button>
@@ -274,6 +274,9 @@
                             <input type="text" id="profile-name" placeholder="Your Name" required>
                         </div>
                         <div class="input-group">
+                            <input type="text" id="profile-username" placeholder="Username" required>
+                        </div>
+                        <div class="input-group">
                             <input type="email" id="profile-email" placeholder="Your Email" required readonly>
                         </div>
                         <div class="input-group">
@@ -283,12 +286,13 @@
                     </form>
                 </div>
 
+
                 <!-- Other Settings Sections -->
                 <div class="settings-tabs">
                     <div class="settings-tab active" data-tab="avatars">Avatar Store</div>
                     <div class="settings-tab" data-tab="my-avatars">My Avatars</div>
-                    <div class="settings-tab" data-tab="privacy">Privacy</div>
-                    <div class="settings-tab" data-tab="notifications">Notifications</div>
+                   
+                    
                 </div>
                 
                 <div class="settings-content">
@@ -296,10 +300,6 @@
                     <div id="avatars-settings" class="settings-panel active">
                         <h3>Premium Avatar Store</h3>
                         <p class="premium-subtitle">Buy exclusive neon avatars for your profile!</p>
-                        <div class="user-balance-display">
-                            <i class="fas fa-wallet"></i>
-                            <span id="settings-balance">$100</span> available
-                        </div>
                         <div class="avatar-categories">
                             <button class="avatar-category active" data-category="all">All</button>
                             <button class="avatar-category" data-category="free">Free</button>
@@ -321,56 +321,36 @@
                         </div>
                     </div>
 
-                    <!-- Privacy Settings -->
-                    <div id="privacy-settings" class="settings-panel">
-                        <h3>Privacy Settings</h3>
-                        <div class="privacy-options">
-                            <div class="privacy-option">
-                                <label>
-                                    <input type="checkbox" id="online-status-toggle" checked>
-                                    Show online status
-                                </label>
-                            </div>
-                            <div class="privacy-option">
-                                <label>
-                                    <input type="checkbox" id="read-receipts-toggle" checked>
-                                    Read receipts
-                                </label>
-                            </div>
-                            <div class="privacy-option">
-                                <label>
-                                    <input type="checkbox" id="profile-visibility-toggle" checked>
-                                    Profile visibility
-                                </label>
-                            </div>
+                    <!-- Sticker Store -->
+                    <div id="stickers-store-settings" class="settings-panel">
+                        <h3>Premium Sticker Store</h3>
+                        <div class="sticker-categories-nav">
+                            <button class="sticker-category-btn active" data-category="all">All Stickers</button>
+                            <button class="sticker-category-btn" data-category="free">Free</button>
+                            <button class="sticker-category-btn" data-category="premium">Premium</button>
                         </div>
-                        <button class="neon-btn" id="save-privacy-btn">Save Privacy Settings</button>
+                        <div class="stickers-grid scrollable" id="settings-stickers-grid">
+                            <!-- Stickers will be populated here -->
+                        </div>
                     </div>
 
-                    <!-- Notification Settings -->
-                    <div id="notifications-settings" class="settings-panel">
-                        <h3>Notification Settings</h3>
-                        <div class="notification-options">
-                            <div class="notification-option">
-                                <label>
-                                    <input type="checkbox" id="message-notifications" checked>
-                                    Message notifications
-                                </label>
-                            </div>
-                            <div class="notification-option">
-                                <label>
-                                    <input type="checkbox" id="group-notifications" checked>
-                                    Group notifications
-                                </label>
-                            </div>
-                            <div class="notification-option">
-                                <label>
-                                    <input type="checkbox" id="sound-notifications" checked>
-                                    Sound notifications
-                                </label>
-                            </div>
+                    <!-- My Stickers -->
+                    <div id="my-stickers-settings" class="settings-panel">
+                        <h3>My Sticker Collection</h3>
+                        <div class="collection-stats">
+                            <span class="stat-badge"><i class="fas fa-smile"></i> <span id="owned-stickers-count">0</span> Stickers</span>
                         </div>
-                        <button class="neon-btn" id="save-notifications-btn">Save Notification Settings</button>
+                        <div class="stickers-grid scrollable" id="my-stickers-grid">
+                            <div class="no-stickers">You don't have any stickers yet. Visit the store to buy some!</div>
+                        </div>
+                    </div>
+
+                    <!-- Themes Store -->
+                    <div id="themes-store-settings" class="settings-panel">
+                        <h3>Premium Themes Store</h3>
+                        <div class="theme-colors-grid">
+                            <!-- Additional premium themes will be populated here -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -386,7 +366,7 @@
             </div>
             <div class="modal-body">
                 <div class="input-group">
-                    <input type="text" id="search-user" placeholder="Search users..." autocomplete="off">
+                    <input type="text" id="search-user" placeholder="Search users by username..." autocomplete="off">
                     <i class="fas fa-search"></i>
                 </div>
                 <div class="users-list scrollable" id="users-list">
@@ -410,6 +390,31 @@
                 <div class="input-group">
                     <textarea id="group-description" placeholder="Group Description"></textarea>
                 </div>
+                <div class="group-avatar-section">
+                    <h4>Group Avatar</h4>
+                    <div class="group-avatar-options">
+                        <div class="group-avatar-option active" data-type="default">
+                            <i class="fas fa-users"></i>
+                            <span>Default</span>
+                        </div>
+                        <div class="group-avatar-option" data-type="gallery">
+                            <i class="fas fa-image"></i>
+                            <span>Gallery</span>
+                        </div>
+                        <div class="group-avatar-option" data-type="avatar">
+                            <i class="fas fa-user-circle"></i>
+                            <span>Avatar</span>
+                        </div>
+                    </div>
+                    <div class="group-avatar-preview">
+                        <img id="group-avatar-preview" src="" alt="Group Avatar" style="display: none;">
+                        <div id="group-default-avatar">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <input type="file" id="group-avatar-input" accept="image/*" style="display: none;">
+                    <button id="browse-avatars-btn" class="neon-btn-small" style="display: none;">Browse Avatars</button>
+                </div>
                 <div class="input-group">
                     <h4>Select Members</h4>
                     <div class="members-list scrollable" id="group-members-list">
@@ -417,6 +422,21 @@
                     </div>
                 </div>
                 <button class="neon-btn" id="create-group-btn">Create Group</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Avatars Modal -->
+    <div id="group-avatars-modal" class="modal">
+        <div class="modal-content neon-border">
+            <div class="modal-header">
+                <h2>Choose Group Avatar</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="avatars-grid scrollable" id="group-avatars-grid">
+                    <!-- Group avatars will be populated here -->
+                </div>
             </div>
         </div>
     </div>
@@ -435,6 +455,7 @@
                         <div class="profile-lights"></div>
                     </div>
                     <h3 id="view-profile-name">User Name</h3>
+                    <p id="view-profile-username">@username</p>
                     <p id="view-profile-email">user@example.com</p>
                     <p id="view-profile-bio" class="profile-bio">No bio yet</p>
                     
@@ -456,23 +477,63 @@
                             <small>Stickers</small>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="user-profile-modal" class="modal">
+        <div class="modal-content neon-border">
+            <div class="modal-header">
+                <h2>User Profile</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-view">
+                    <div class="profile-pic-container large">
+                        <img id="user-view-profile-pic" src="https://api.dicebear.com/7.x/adventurer/svg?seed=User" alt="Profile">
+                        <div class="profile-lights"></div>
+                    </div>
+                    <h3 id="user-view-profile-name">User Name</h3>
+                    <p id="user-view-profile-username">@username</p>
+                    <p id="user-view-profile-bio" class="profile-bio">No bio yet</p>
                     
-                    <div class="profile-achievements">
-                        <h4>Achievements</h4>
-                        <div class="achievements-grid">
-                            <div class="achievement-item">
-                                <i class="fas fa-comment"></i>
-                                <span>First Message</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-users"></i>
-                                <span>Group Creator</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-store"></i>
-                                <span>First Purchase</span>
-                            </div>
+                    <div class="profile-actions">
+                        <button class="neon-btn" id="start-chat-with-user">Start Chat</button>
+                        <button class="neon-btn" id="add-to-contacts">Add to Contacts</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Info Modal -->
+    <div id="group-info-modal" class="modal">
+        <div class="modal-content neon-border">
+            <div class="modal-header">
+                <h2>Group Info</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="group-info-view">
+                    <div class="group-avatar-large">
+                        <img id="group-info-avatar" src="" alt="Group Avatar">
+                    </div>
+                    <h3 id="group-info-name">Group Name</h3>
+                    <p id="group-info-description">No description</p>
+                    
+                    <div class="group-members-section">
+                        <h4>Members (<span id="group-members-count">0</span>)</h4>
+                        <div class="members-list scrollable" id="group-info-members-list">
+                            <!-- Members will be populated here -->
                         </div>
+                    </div>
+                    
+                    <div class="group-actions">
+                        <button class="neon-btn" id="exit-group-btn">Exit Group</button>
+                        <button class="neon-btn" id="make-admin-btn" style="display: none;">Make Admin</button>
+                        <button class="neon-btn" id="remove-member-btn" style="display: none;">Remove Member</button>
                     </div>
                 </div>
             </div>
@@ -509,11 +570,149 @@
         </div>
     </div>
 
+    <!-- Payment Success Modal -->
+    <div id="payment-success-modal" class="modal">
+        <div class="modal-content neon-border">
+            <div class="modal-header">
+                <h2>Payment Successful!</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="payment-success-content">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3>Congratulations!</h3>
+                    <p id="success-message">Your purchase was successful!</p>
+                    <div class="neon-lights-effect"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Failed Modal -->
+    <div id="payment-failed-modal" class="modal">
+        <div class="modal-content neon-border">
+            <div class="modal-header">
+                <h2>Payment Failed</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="payment-failed-content">
+                    <div class="failed-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <h3>Payment Failed</h3>
+                    <p>Your payment could not be processed. Please try again.</p>
+                    <button class="neon-btn" id="retry-payment-btn">Retry Payment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Referral Modal -->
+    <div id="referral-modal" class="modal">
+        <div class="modal-content neon-border">
+            <div class="modal-header">
+                <h2>Refer & Earn</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="referral-content">
+                    <div class="referral-code-section">
+                        <h3>Your Referral Code</h3>
+                        <div class="referral-code" id="user-referral-code">Loading...</div>
+                        <button class="neon-btn" id="share-referral-btn">Share Link</button>
+                    </div>
+                    <div class="referral-stats">
+                        <div class="stat-badge">
+                            <i class="fas fa-users"></i>
+                            <span id="referral-count">0</span> Friends Referred
+                        </div>
+                        <div class="stat-badge">
+                            <i class="fas fa-gift"></i>
+                            <span id="referral-rewards">0</span> Rewards Earned
+                        </div>
+                    </div>
+                    <div class="referral-benefits">
+                        <h4>Referral Benefits</h4>
+                        <ul>
+                            <li>Your friend gets 1 free premium avatar</li>
+                            <li>You get 1 random premium avatar when they sign up</li>
+                            <li>Both get 50 coins bonus</li>
+                            <li>Unlock exclusive features together</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Story Upload Modal -->
+    <div id="story-upload-modal" class="modal fullscreen-modal">
+        <div class="modal-content story-upload-content">
+            <div class="story-upload-header">
+                <button class="back-btn" id="back-from-story"><i class="fas fa-arrow-left"></i></button>
+                <h3>Create Story</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="story-upload-body">
+                <div class="story-media-grid" id="story-media-grid">
+                    <!-- Media items will be populated here -->
+                </div>
+                <div class="story-preview-section hidden" id="story-preview-section">
+                    <div class="story-preview-container">
+                        <img id="story-preview-image" src="" alt="Story Preview">
+                        <video id="story-preview-video" controls style="display: none;"></video>
+                        <div class="story-preview-actions">
+                            <button class="neon-btn" id="post-story-btn">Post Story</button>
+                            <button class="neon-btn cancel-btn" id="cancel-story-btn">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Story Viewer Modal -->
+    <div id="story-viewer-modal" class="modal fullscreen-modal">
+        <div class="modal-content story-viewer">
+            <div class="story-viewer-header">
+                <img id="viewer-profile-pic" src="" alt="Profile">
+                <div class="viewer-info">
+                    <h4 id="viewer-username">Username</h4>
+                    <span id="viewer-time">2h ago</span>
+                </div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="story-content">
+                <img id="viewer-story-image" src="" alt="Story" style="display: none;">
+                <video id="viewer-story-video" controls style="display: none;"></video>
+            </div>
+            <div class="story-viewer-actions">
+                <button class="story-action-btn" id="prev-story-btn"><i class="fas fa-chevron-left"></i></button>
+                <button class="story-action-btn" id="next-story-btn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Actions Modal -->
+    <div id="message-actions-modal" class="modal">
+        <div class="modal-content message-actions">
+            <div class="action-buttons">
+                <button class="action-btn" id="edit-message-btn">Edit</button>
+                <button class="action-btn" id="delete-message-btn">Delete</button>
+                <button class="action-btn cancel-btn" id="cancel-actions-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-messaging-compat.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
