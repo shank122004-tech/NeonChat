@@ -1,0 +1,22 @@
+{
+  "name": "NeonChat",
+  "short_name": "NeonChat",
+  "description": "Cyber Style Messaging App",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a16",
+  "theme_color": "#ff00de",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://api.dicebear.com/7.x/icons/svg?seed=neonchat&backgroundColor=ff00de",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "https://api.dicebear.com/7.x/icons/svg?seed=neonchat&backgroundColor=ff00de",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
