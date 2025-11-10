@@ -1,4 +1,4 @@
-// app.js - Complete Enhanced Version with All Features
+// app.js - Complete Enhanced Version with Optional Username on Signup
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -446,8 +446,7 @@ function setupEventListeners() {
         elements.storyPreviewSection.classList.add('hidden');
     });
     
-    // Add Story Button
-    document.querySelector('.add-story').addEventListener('click', openStoryUploadModal);
+
     
     // Story Viewer Navigation
     elements.prevStoryBtn.addEventListener('click', showPreviousStory);
@@ -516,16 +515,28 @@ function setupAuthStateListener() {
     });
 }
 
-// Ensure User Document Exists
+// Ensure User Document Exists - MODIFIED: No username required on signup
 async function ensureUserDocument(user) {
     const userRef = db.collection('users').doc(user.uid);
     const snap = await userRef.get();
     
     if (!snap.exists) {
         const referralCode = generateReferralCode();
+        // Generate a unique username automatically
+        let username = "user" + Math.random().toString(36).substr(2, 8);
+        
+        // Check if username is available, if not, generate a unique one
+        let usernameAvailable = await checkUsernameAvailability(username);
+        let counter = 1;
+        while (!usernameAvailable && counter < 100) {
+            username = "user" + Math.random().toString(36).substr(2, 8);
+            usernameAvailable = await checkUsernameAvailability(username);
+            counter++;
+        }
+        
         await userRef.set({
             name: user.displayName || "New User",
-            username: user.email.split('@')[0] || "user" + Math.random().toString(36).substr(2, 5),
+            username: username,
             email: user.email,
             avatar: user.photoURL || "https://api.dicebear.com/7.x/adventurer/svg?seed=" + user.uid,
             bio: "Hey there! I'm using NeonChat",
@@ -761,7 +772,7 @@ function loadChatsRealtime() {
     unsubscribeFunctions.push(chatsUnsubscribe);
 }
 
-// Update Chats List with Real-time Data and Delete Option
+// Update the delete chat button in updateChatsListRealtime function
 function updateChatsListRealtime(chatDocs) {
     const chatsList = elements.chatsList;
     chatsList.innerHTML = '';
@@ -781,6 +792,7 @@ function updateChatsListRealtime(chatDocs) {
                 const userData = userDoc.data();
                 const chatItem = document.createElement('div');
                 chatItem.className = 'chat-item';
+                chatItem.dataset.chatId = doc.id;
                 chatItem.innerHTML = `
                     <img src="${userData.avatar}" alt="${userData.name}" class="clickable-profile-pic">
                     <div class="chat-info">
@@ -788,8 +800,8 @@ function updateChatsListRealtime(chatDocs) {
                         <p>${chat.lastMessage || 'No messages yet'}</p>
                     </div>
                     <div class="chat-time">${formatChatTime(chat.lastUpdated)}</div>
-                    <button class="delete-chat-btn" data-chat-id="${doc.id}">
-                        <i class="fas fa-trash"></i>
+                    <button class="delete-chat-btn cosmic-delete" data-chat-id="${doc.id}">
+                        <i class="fas fa-meteor"></i>
                     </button>
                 `;
                 chatItem.addEventListener('click', (e) => {
@@ -798,7 +810,7 @@ function updateChatsListRealtime(chatDocs) {
                     }
                 });
                 
-                // Add delete functionality
+                // Add delete functionality with asteroid animation
                 const deleteBtn = chatItem.querySelector('.delete-chat-btn');
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -812,28 +824,97 @@ function updateChatsListRealtime(chatDocs) {
         }
     });
 }
-
-// Delete Chat Function
+// Enhanced Delete Chat with Asteroid Animation
 async function deleteChat(chatId) {
     if (confirm('Are you sure you want to delete this chat? All messages will be permanently deleted.')) {
         try {
-            // Delete all messages in the chat
-            const messagesSnapshot = await db.collection('chats').doc(chatId).collection('messages').get();
-            const batch = db.batch();
-            messagesSnapshot.forEach(doc => {
-                batch.delete(doc.ref);
-            });
-            await batch.commit();
+            // Find the chat item element
+            const chatItem = document.querySelector(`[data-chat-id="${chatId}"]`) || 
+                           document.querySelector(`.delete-chat-btn[data-chat-id="${chatId}"]`)?.closest('.chat-item');
             
-            // Delete the chat document
-            await db.collection('chats').doc(chatId).delete();
-            
-            showNotification('Chat deleted successfully');
+            if (chatItem) {
+                // Create asteroid animation
+                createAsteroidAnimation(chatItem);
+                
+                // Wait for animation to complete
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Delete all messages in the chat
+                const messagesSnapshot = await db.collection('chats').doc(chatId).collection('messages').get();
+                const batch = db.batch();
+                messagesSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+                
+                // Delete the chat document
+                await db.collection('chats').doc(chatId).delete();
+                
+                showNotification('Chat deleted successfully with cosmic destruction! 🌠');
+            }
         } catch (error) {
             console.error('Error deleting chat:', error);
             showNotification('Error deleting chat', 'error');
         }
     }
+}
+
+// Create Asteroid Animation
+function createAsteroidAnimation(chatItem) {
+    const rect = chatItem.getBoundingClientRect();
+    const asteroid = document.createElement('div');
+    asteroid.className = 'asteroid';
+    asteroid.innerHTML = '💥';
+    
+    // Position asteroid outside viewport
+    asteroid.style.cssText = `
+        position: fixed;
+        font-size: 3rem;
+        z-index: 10000;
+        pointer-events: none;
+        top: -100px;
+        right: -100px;
+        transform-origin: center;
+        animation: asteroidCrash 1.5s ease-in-out forwards;
+    `;
+    
+    document.body.appendChild(asteroid);
+    
+    // Add explosion effect
+    setTimeout(() => {
+        createExplosionEffect(chatItem);
+        chatItem.style.animation = 'chatDestruction 1s ease-in-out forwards';
+    }, 1000);
+    
+    // Clean up
+    setTimeout(() => {
+        asteroid.remove();
+    }, 2000);
+}
+
+// Create Explosion Effect
+function createExplosionEffect(chatItem) {
+    const rect = chatItem.getBoundingClientRect();
+    const explosion = document.createElement('div');
+    explosion.className = 'explosion';
+    explosion.innerHTML = '✨';
+    
+    explosion.style.cssText = `
+        position: fixed;
+        font-size: 4rem;
+        z-index: 9999;
+        pointer-events: none;
+        left: ${rect.left + rect.width/2}px;
+        top: ${rect.top + rect.height/2}px;
+        transform: translate(-50%, -50%);
+        animation: explosionEffect 1s ease-out forwards;
+    `;
+    
+    document.body.appendChild(explosion);
+    
+    setTimeout(() => {
+        explosion.remove();
+    }, 1000);
 }
 
 // Enhanced Story System - Real Firebase Integration
@@ -1059,7 +1140,7 @@ async function handleProfilePicUpload(event) {
     }
 }
 
-// Profile Update
+// Profile Update - MODIFIED: Username is now optional and can be set in app
 async function handleProfileUpdate(event) {
     event.preventDefault();
     
@@ -1072,24 +1153,27 @@ async function handleProfileUpdate(event) {
         return;
     }
     
-    if (!username) {
-        alert('Please enter a username');
-        return;
-    }
-    
-    // Check username availability
-    const usernameAvailable = await checkUsernameAvailability(username);
-    if (!usernameAvailable) {
-        alert('Username already taken. Please choose another one.');
-        return;
+    // If username is provided, check availability
+    if (username) {
+        const usernameAvailable = await checkUsernameAvailability(username, currentUser.uid);
+        if (!usernameAvailable) {
+            alert('Username already taken. Please choose another one.');
+            return;
+        }
     }
     
     try {
-        await db.collection('users').doc(currentUser.uid).update({
+        const updateData = {
             name: name,
-            username: username,
             bio: bio
-        });
+        };
+        
+        // Only update username if provided
+        if (username) {
+            updateData.username = username;
+        }
+        
+        await db.collection('users').doc(currentUser.uid).update(updateData);
         
         alert('Profile updated successfully!');
         closeAllModals();
@@ -1101,17 +1185,29 @@ async function handleProfileUpdate(event) {
 }
 
 // Check Username Availability
-async function checkUsernameAvailability(username) {
+async function checkUsernameAvailability(username, currentUserId = null) {
     try {
         const snapshot = await db.collection('users')
             .where('username', '==', username)
-            .where(firebase.firestore.FieldPath.documentId(), '!=', currentUser.uid)
             .get();
         
-        return snapshot.empty;
+        if (snapshot.empty) {
+            return true; // Username is available
+        }
+        
+        // If we're checking for a specific user (during profile update)
+        if (currentUserId) {
+            // Check if the username belongs to the current user
+            const currentUserDoc = snapshot.docs.find(doc => doc.id === currentUserId);
+            if (currentUserDoc) {
+                return true; // It's the current user's own username
+            }
+        }
+        
+        return false; // Username is taken by another user
     } catch (error) {
         console.error('Error checking username:', error);
-        return false;
+        return false; // If there's an error, assume username is taken to be safe
     }
 }
 
@@ -1199,32 +1295,41 @@ async function handleLogin(event) {
     }
 }
 
+// Signup Handler - MODIFIED: No username required
 async function handleSignup(event) {
     event.preventDefault();
     const name = document.getElementById('signup-name').value;
-    const username = document.getElementById('signup-username').value;
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
     const referralCode = document.getElementById('referral-code').value;
     
     try {
-        // Check username availability first
-        const usernameAvailable = await checkUsernameAvailability(username);
-        if (!usernameAvailable) {
-            alert('Username already taken. Please choose another one.');
-            return;
-        }
-        
+        // Create user with email and password
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        await userCredential.user.updateProfile({ displayName: name });
+        
+        // Update profile with name
+        await userCredential.user.updateProfile({
+            displayName: name
+        });
         
         // Process referral if provided
         if (referralCode) {
             await processReferral(referralCode);
         }
+        
+        // User document will be created automatically by ensureUserDocument in auth state listener
+        
     } catch (error) {
         console.error('Signup error:', error);
-        alert('Signup failed: ' + error.message);
+        
+        // Handle specific error cases
+        if (error.code === 'auth/email-already-in-use') {
+            alert('Email already in use. Please use a different email or login.');
+        } else if (error.code === 'auth/weak-password') {
+            alert('Password is too weak. Please use a stronger password.');
+        } else {
+            alert('Signup failed: ' + error.message);
+        }
     }
 }
 
@@ -2710,81 +2815,217 @@ function handleUserSearch(event) {
     });
 }
 
-// Enhanced Avatars with 25 new avatars at 29 INR
+// Enhanced Avatars with Hinglish Funny Names
 function initializeAvatars() {
     const avatars = [
         // Free Avatars (10)
-        { id: 1, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=1', name: 'Adventurer 1', category: 'free', price: 0, razorpayLink: '' },
-        { id: 2, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=2', name: 'Adventurer 2', category: 'free', price: 0, razorpayLink: '' },
-        { id: 3, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=3', name: 'Adventurer 3', category: 'free', price: 0, razorpayLink: '' },
-        { id: 4, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=4', name: 'Adventurer 4', category: 'free', price: 0, razorpayLink: '' },
-        { id: 5, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=5', name: 'Adventurer 5', category: 'free', price: 0, razorpayLink: '' },
-        { id: 6, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=6', name: 'Adventurer 6', category: 'free', price: 0, razorpayLink: '' },
-        { id: 7, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=7', name: 'Adventurer 7', category: 'free', price: 0, razorpayLink: '' },
-        { id: 8, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=8', name: 'Adventurer 8', category: 'free', price: 0, razorpayLink: '' },
-        { id: 9, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=9', name: 'Adventurer 9', category: 'free', price: 0, razorpayLink: '' },
-        { id: 10, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=10', name: 'Adventurer 10', category: 'free', price: 0, razorpayLink: '' },
+        { id: 1, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=1', name: 'Chotu Bhai', category: 'free', price: 0, razorpayLink: '', gender: 'boy', style: 'funny' },
+        { id: 2, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=2', name: 'Gulabo', category: 'free', price: 0, razorpayLink: '', gender: 'girl', style: 'cute' },
+        { id: 3, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=3', name: 'Bhidu', category: 'free', price: 0, razorpayLink: '', gender: 'boy', style: 'gangster' },
+        { id: 4, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=4', name: 'Chandni', category: 'free', price: 0, razorpayLink: '', gender: 'girl', style: 'cute' },
+        { id: 5, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=5', name: 'Babu Rao', category: 'free', price: 0, razorpayLink: '', gender: 'man', style: 'funny' },
+        { id: 6, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=6', name: 'Pinky', category: 'free', price: 0, razorpayLink: '', gender: 'girl', style: 'cute' },
+        { id: 7, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=7', name: 'Raju', category: 'free', price: 0, razorpayLink: '', gender: 'boy', style: 'funny' },
+        { id: 8, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=8', name: 'Chameli', category: 'free', price: 0, razorpayLink: '', gender: 'woman', style: 'cute' },
+        { id: 9, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=9', name: 'Gogo', category: 'free', price: 0, razorpayLink: '', gender: 'boy', style: 'gangster' },
+        { id: 10, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=10', name: 'Munni', category: 'free', price: 0, razorpayLink: '', gender: 'girl', style: 'cute' },
+
+
+                // Bollywood Character Avatars (50 New Paid Ones)
+        { id: 101, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=salman', name: 'Salman Bhai', category: 'premium', price: 199, razorpayLink: 'https://rzp.io/l/neonchat-avatar199', gender: 'man', style: 'bollywood', character: 'actor' },
+        { id: 102, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=shahrukh', name: 'King Khan', category: 'premium', price: 299, razorpayLink: 'https://rzp.io/l/neonchat-avatar299', gender: 'man', style: 'bollywood', character: 'actor' },
+        { id: 103, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=amitabh', name: 'Big B', category: 'premium', price: 399, razorpayLink: 'https://rzp.io/l/neonchat-avatar399', gender: 'man', style: 'bollywood', character: 'actor' },
+        { id: 104, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=akshay', name: 'Khiladi Kumar', category: 'premium', price: 179, razorpayLink: 'https://rzp.io/l/neonchat-avatar179', gender: 'man', style: 'bollywood', character: 'actor' },
+        { id: 105, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=hrithik', name: 'Greek God', category: 'premium', price: 259, razorpayLink: 'https://rzp.io/l/neonchat-avatar259', gender: 'man', style: 'bollywood', character: 'actor' },
         
-        // Premium Avatars with Razorpay Links
-        { id: 11, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=1', name: 'Cyber Warrior', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/rzp/qYsrn5JB' },
-        { id: 12, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=2', name: 'Neon Explorer', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/rzp/TORrZtV' },
-        { id: 13, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=3', name: 'Digital Ninja', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/rzp/nT5kcq9' },
-        { id: 14, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=4', name: 'Tech Samurai', category: 'premium', price: 149, razorpayLink: 'https://rzp.io/rzp/fKwa7mf' },
-        { id: 15, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=5', name: 'Matrix Hero', category: 'premium', price: 149, razorpayLink: 'https://rzp.io/l/neonchat-avatar149' },
-        { id: 16, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=6', name: 'Cyber Punk', category: 'premium', price: 89, razorpayLink: 'https://rzp.io/l/neonchat-avatar89' },
-        { id: 17, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=7', name: 'Neon Gladiator', category: 'premium', price: 89, razorpayLink: 'https://rzp.io/l/neonchat-avatar89' },
-        { id: 18, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=8', name: 'Digital Phantom', category: 'premium', price: 129, razorpayLink: 'https://rzp.io/l/neonchat-avatar129' },
-        { id: 19, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=9', name: 'Tech Wizard', category: 'premium', price: 129, razorpayLink: 'https://rzp.io/l/neonchat-avatar129' },
-        { id: 20, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=10', name: 'Cyber Queen', category: 'premium', price: 149, razorpayLink: 'https://rzp.io/l/neonchat-avatar149' },
+        // Bollywood Heroines
+        { id: 106, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=deepika', name: 'Deepu Queen', category: 'premium', price: 229, razorpayLink: 'https://rzp.io/l/neonchat-avatar229', gender: 'woman', style: 'bollywood', character: 'actress' },
+        { id: 107, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=priyanka', name: 'Piggy Chops', category: 'premium', price: 279, razorpayLink: 'https://rzp.io/l/neonchat-avatar279', gender: 'woman', style: 'bollywood', character: 'actress' },
+        { id: 108, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=kareena', name: 'Bebo Jaan', category: 'premium', price: 249, razorpayLink: 'https://rzp.io/l/neonchat-avatar249', gender: 'woman', style: 'bollywood', character: 'actress' },
+        { id: 109, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=katrina', name: 'Kat Miss', category: 'premium', price: 269, razorpayLink: 'https://rzp.io/l/neonchat-avatar269', gender: 'woman', style: 'bollywood', character: 'actress' },
+        { id: 110, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=alia', name: 'Alia Bhatt', category: 'premium', price: 199, razorpayLink: 'https://rzp.io/l/neonchat-avatar199', gender: 'woman', style: 'bollywood', character: 'actress' },
         
-        // More premium avatars with different prices
-        { id: 21, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=1', name: 'Robot 1', category: 'premium', price: 49, razorpayLink: 'https://rzp.io/l/neonchat-avatar49' },
-        { id: 22, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=2', name: 'Robot 2', category: 'premium', price: 49, razorpayLink: 'https://rzp.io/l/neonchat-avatar49' },
-        { id: 23, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=3', name: 'Robot 3', category: 'premium', price: 49, razorpayLink: 'https://rzp.io/l/neonchat-avatar49' },
-        { id: 24, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=4', name: 'Robot 4', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-avatar39' },
-        { id: 25, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=5', name: 'Robot 5', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-avatar39' },
+        // Iconic Bollywood Characters
+        { id: 111, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=don', name: 'Don', category: 'premium', price: 349, razorpayLink: 'https://rzp.io/l/neonchat-avatar349', gender: 'man', style: 'bollywood', character: 'don' },
+        { id: 112, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=vijay', name: 'Vijay Dinanath', category: 'premium', price: 319, razorpayLink: 'https://rzp.io/l/neonchat-avatar319', gender: 'man', style: 'bollywood', character: 'angry young man' },
+        { id: 113, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=chulbul', name: 'Chulbul Pandey', category: 'premium', price: 299, razorpayLink: 'https://rzp.io/l/neonchat-avatar299', gender: 'man', style: 'bollywood', character: 'cop' },
+        { id: 114, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=simba', name: 'Simba', category: 'premium', price: 279, razorpayLink: 'https://rzp.io/l/neonchat-avatar279', gender: 'man', style: 'bollywood', character: 'gangster' },
+        { id: 115, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=rocky', name: 'Rocky Randhawa', category: 'premium', price: 289, razorpayLink: 'https://rzp.io/l/neonchat-avatar289', gender: 'man', style: 'bollywood', character: 'boxer' },
         
-        // Ultra Premium Avatars
-        { id: 26, url: 'https://api.dicebear.com/7.x/micah/svg?seed=1', name: 'Ultra Warrior', category: 'premium', price: 499, razorpayLink: 'https://rzp.io/l/neonchat-avatar499' },
-        { id: 27, url: 'https://api.dicebear.com/7.x/micah/svg?seed=2', name: 'Mega Explorer', category: 'premium', price: 499, razorpayLink: 'https://rzp.io/l/neonchat-avatar499' },
-        { id: 28, url: 'https://api.dicebear.com/7.x/micah/svg?seed=3', name: 'Super Ninja', category: 'premium', price: 1099, razorpayLink: 'https://rzp.io/l/neonchat-avatar1099' },
-        { id: 29, url: 'https://api.dicebear.com/7.x/micah/svg?seed=4', name: 'Legend Samurai', category: 'premium', price: 1099, razorpayLink: 'https://rzp.io/l/neonchat-avatar1099' },
-        { id: 30, url: 'https://api.dicebear.com/7.x/micah/svg?seed=5', name: 'Epic Hero', category: 'premium', price: 3099, razorpayLink: 'https://rzp.io/l/neonchat-avatar3099' },
+        // Bollywood Villains
+        { id: 116, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=gabbar', name: 'Gabbar Singh', category: 'premium', price: 399, razorpayLink: 'https://rzp.io/l/neonchat-avatar399', gender: 'man', style: 'bollywood', character: 'villain' },
+        { id: 117, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=mogambo', name: 'Mogambo', category: 'premium', price: 379, razorpayLink: 'https://rzp.io/l/neonchat-avatar379', gender: 'man', style: 'bollywood', character: 'villain' },
+        { id: 118, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=kancha', name: 'Kancha Cheena', category: 'premium', price: 359, razorpayLink: 'https://rzp.io/l/neonchat-avatar359', gender: 'man', style: 'bollywood', character: 'villain' },
+        { id: 119, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=raOne', name: 'Ra One', category: 'premium', price: 329, razorpayLink: 'https://rzp.io/l/neonchat-avatar329', gender: 'man', style: 'bollywood', character: 'villain' },
+        { id: 120, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=shakaal', name: 'Shakaal', category: 'premium', price: 319, razorpayLink: 'https://rzp.io/l/neonchat-avatar319', gender: 'man', style: 'bollywood', character: 'villain' },
         
-        // Exclusive Avatars
-        { id: 31, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=1', name: 'Pixel Warrior', category: 'premium', price: 29999, razorpayLink: 'https://rzp.io/l/neonchat-avatar29999' },
-        { id: 32, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=2', name: 'Pixel Queen', category: 'premium', price: 29999, razorpayLink: 'https://rzp.io/l/neonchat-avatar29999' },
+        // Bollywood Comedy Characters
+        { id: 121, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=circuit', name: 'Circuit', category: 'premium', price: 199, razorpayLink: 'https://rzp.io/l/neonchat-avatar199', gender: 'man', style: 'bollywood', character: 'comedy' },
+        { id: 122, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=raju', name: 'Raju Guide', category: 'premium', price: 189, razorpayLink: 'https://rzp.io/l/neonchat-avatar189', gender: 'man', style: 'bollywood', character: 'comedy' },
+        { id: 123, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=baburao', name: 'Baburao', category: 'premium', price: 219, razorpayLink: 'https://rzp.io/l/neonchat-avatar219', gender: 'man', style: 'bollywood', character: 'comedy' },
+        { id: 124, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=mehmood', name: 'Mehmood', category: 'premium', price: 179, razorpayLink: 'https://rzp.io/l/neonchat-avatar179', gender: 'man', style: 'bollywood', character: 'comedy' },
+        { id: 125, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=johnylever', name: 'Johnny Lever', category: 'premium', price: 169, razorpayLink: 'https://rzp.io/l/neonchat-avatar169', gender: 'man', style: 'bollywood', character: 'comedy' },
         
-        // New Premium Avatars at 29 INR (25 new ones)
-        { id: 33, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=neon1', name: 'Neon Identity 1', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 34, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=neon2', name: 'Neon Identity 2', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 35, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=neon3', name: 'Neon Identity 3', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 36, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=neon4', name: 'Neon Identity 4', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 37, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=neon5', name: 'Neon Identity 5', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 38, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=neon6', name: 'Neon Bot 1', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 39, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=neon7', name: 'Neon Bot 2', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 40, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=neon8', name: 'Neon Bot 3', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 41, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=neon9', name: 'Neon Bot 4', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 42, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=neon10', name: 'Neon Bot 5', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 43, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=neon11', name: 'Neon Character 1', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 44, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=neon12', name: 'Neon Character 2', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 45, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=neon13', name: 'Neon Character 3', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 46, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=neon14', name: 'Neon Character 4', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 47, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=neon15', name: 'Neon Character 5', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 48, url: 'https://api.dicebear.com/7.x/micah/svg?seed=neon16', name: 'Neon Art 1', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 49, url: 'https://api.dicebear.com/7.x/micah/svg?seed=neon17', name: 'Neon Art 2', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 50, url: 'https://api.dicebear.com/7.x/micah/svg?seed=neon18', name: 'Neon Art 3', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 51, url: 'https://api.dicebear.com/7.x/micah/svg?seed=neon19', name: 'Neon Art 4', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 52, url: 'https://api.dicebear.com/7.x/micah/svg?seed=neon20', name: 'Neon Art 5', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 53, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=neon21', name: 'Pixel Neon 1', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 54, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=neon22', name: 'Pixel Neon 2', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 55, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=neon23', name: 'Pixel Neon 3', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 56, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=neon24', name: 'Pixel Neon 4', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' },
-        { id: 57, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=neon25', name: 'Pixel Neon 5', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29' }
+        // Bollywood Item Girls
+        { id: 126, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=helen', name: 'Helen Jaan', category: 'premium', price: 299, razorpayLink: 'https://rzp.io/l/neonchat-avatar299', gender: 'woman', style: 'bollywood', character: 'dancer' },
+        { id: 127, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=madhu', name: 'Madhu Bala', category: 'premium', price: 279, razorpayLink: 'https://rzp.io/l/neonchat-avatar279', gender: 'woman', style: 'bollywood', character: 'actress' },
+        { id: 128, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=meena', name: 'Meena Kumari', category: 'premium', price: 269, razorpayLink: 'https://rzp.io/l/neonchat-avatar269', gender: 'woman', style: 'bollywood', character: 'actress' },
+        { id: 129, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=rekha', name: 'Rekha Ji', category: 'premium', price: 289, razorpayLink: 'https://rzp.io/l/neonchat-avatar289', gender: 'woman', style: 'bollywood', character: 'actress' },
+        { id: 130, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sridevi', name: 'Sridevi Maam', category: 'premium', price: 319, razorpayLink: 'https://rzp.io/l/neonchat-avatar319', gender: 'woman', style: 'bollywood', character: 'actress' },
+        
+        // Bollywood New Generation
+        { id: 131, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ranveer', name: 'Ranveer Singh', category: 'premium', price: 229, razorpayLink: 'https://rzp.io/l/neonchat-avatar229', gender: 'man', style: 'bollywood', character: 'actor' },
+        { id: 132, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ranbir', name: 'Ranbir Kapoor', category: 'premium', price: 239, razorpayLink: 'https://rzp.io/l/neonchat-avatar239', gender: 'man', style: 'bollywood', character: 'actor' },
+        { id: 133, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=varun', name: 'Varun Dhawan', category: 'premium', price: 199, razorpayLink: 'https://rzp.io/l/neonchat-avatar199', gender: 'man', style: 'bollywood', character: 'actor' },
+        { id: 134, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tiger', name: 'Tiger Shroff', category: 'premium', price: 219, razorpayLink: 'https://rzp.io/l/neonchat-avatar219', gender: 'man', style: 'bollywood', character: 'actor' },
+        { id: 135, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=kartik', name: 'Kartik Aryan', category: 'premium', price: 189, razorpayLink: 'https://rzp.io/l/neonchat-avatar189', gender: 'man', style: 'bollywood', character: 'actor' },
+        
+        // Bollywood New Actresses
+        { id: 136, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=kiara', name: 'Kiara Advani', category: 'premium', price: 199, razorpayLink: 'https://rzp.io/l/neonchat-avatar199', gender: 'woman', style: 'bollywood', character: 'actress' },
+        { id: 137, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=shraddha', name: 'Shraddha Kapoor', category: 'premium', price: 209, razorpayLink: 'https://rzp.io/l/neonchat-avatar209', gender: 'woman', style: 'bollywood', character: 'actress' },
+        { id: 138, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=jacqueline', name: 'Jacqueline Fern', category: 'premium', price: 219, razorpayLink: 'https://rzp.io/l/neonchat-avatar219', gender: 'woman', style: 'bollywood', character: 'actress' },
+        { id: 139, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=disha', name: 'Disha Patani', category: 'premium', price: 229, razorpayLink: 'https://rzp.io/l/neonchat-avatar229', gender: 'woman', style: 'bollywood', character: 'actress' },
+        { id: 140, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ananya', name: 'Ananya Pandey', category: 'premium', price: 179, razorpayLink: 'https://rzp.io/l/neonchat-avatar179', gender: 'woman', style: 'bollywood', character: 'actress' },
+        
+        // Bollywood Directors/Styles
+        { id: 141, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=karan', name: 'Karan Johar', category: 'premium', price: 259, razorpayLink: 'https://rzp.io/l/neonchat-avatar259', gender: 'man', style: 'bollywood', character: 'director' },
+        { id: 142, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=rajkumar', name: 'Rajkumar Hirani', category: 'premium', price: 239, razorpayLink: 'https://rzp.io/l/neonchat-avatar239', gender: 'man', style: 'bollywood', character: 'director' },
+        { id: 143, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sanjay', name: 'Sanjay Leela', category: 'premium', price: 229, razorpayLink: 'https://rzp.io/l/neonchat-avatar229', gender: 'man', style: 'bollywood', character: 'director' },
+        { id: 144, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=rohit', name: 'Rohit Shetty', category: 'premium', price: 219, razorpayLink: 'https://rzp.io/l/neonchat-avatar219', gender: 'man', style: 'bollywood', character: 'director' },
+        { id: 145, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=imtiaz', name: 'Imtiaz Ali', category: 'premium', price: 209, razorpayLink: 'https://rzp.io/l/neonchat-avatar209', gender: 'man', style: 'bollywood', character: 'director' },
+        
+        // Bollywood Music Directors
+        { id: 146, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=arrahman', name: 'A R Rahman', category: 'premium', price: 299, razorpayLink: 'https://rzp.io/l/neonchat-avatar299', gender: 'man', style: 'bollywood', character: 'music' },
+        { id: 147, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=pritam', name: 'Pritam Da', category: 'premium', price: 189, razorpayLink: 'https://rzp.io/l/neonchat-avatar189', gender: 'man', style: 'bollywood', character: 'music' },
+        { id: 148, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=vishal', name: 'Vishal Dadlani', category: 'premium', price: 179, razorpayLink: 'https://rzp.io/l/neonchat-avatar179', gender: 'man', style: 'bollywood', character: 'music' },
+        { id: 149, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=shankar', name: 'Shankar Mahadevan', category: 'premium', price: 199, razorpayLink: 'https://rzp.io/l/neonchat-avatar199', gender: 'man', style: 'bollywood', character: 'music' },
+        
+        // Premium Avatars - Boys/Men (25)
+        { id: 11, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=rocky', name: 'Bhai Log', category: 'premium', price: 49, razorpayLink: 'https://rzp.io/l/neonchat-avatar49', gender: 'man', style: 'gangster' },
+        { id: 12, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=don', name: 'Don Bhai', category: 'premium', price: 49, razorpayLink: 'https://rzp.io/l/neonchat-avatar49', gender: 'man', style: 'gangster' },
+        { id: 13, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=chintu', name: 'Chintu Sweet', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-avatar39', gender: 'boy', style: 'cute' },
+        { id: 14, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=badshah', name: 'Badshah', category: 'premium', price: 79, razorpayLink: 'https://rzp.io/l/neonchat-avatar79', gender: 'man', style: 'gangster' },
+        { id: 15, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=motu', name: 'Motu Patlu', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29', gender: 'boy', style: 'funny' },
+        { id: 16, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=gangster', name: 'Gunda No. 1', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-avatar99', gender: 'man', style: 'gangster' },
+        { id: 17, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=chiku', name: 'Chiku Cute', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-avatar39', gender: 'boy', style: 'cute' },
+        { id: 18, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=raja', name: 'Raja Babu', category: 'premium', price: 69, razorpayLink: 'https://rzp.io/l/neonchat-avatar69', gender: 'man', style: 'funny' },
+        { id: 19, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=rockstar', name: 'Rocky Bhai', category: 'premium', price: 89, razorpayLink: 'https://rzp.io/l/neonchat-avatar89', gender: 'man', style: 'gangster' },
+        { id: 20, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=master', name: 'Master Ji', category: 'premium', price: 49, razorpayLink: 'https://rzp.io/l/neonchat-avatar49', gender: 'man', style: 'funny' },
+        
+        // Girls/Women (25)
+        { id: 21, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=queen', name: 'Queen Bee', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-avatar99', gender: 'woman', style: 'gangster' },
+        { id: 22, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=cutie', name: 'Cutie Pie', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-avatar39', gender: 'girl', style: 'cute' },
+        { id: 23, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=gulab', name: 'Gulab Jaan', category: 'premium', price: 59, razorpayLink: 'https://rzp.io/l/neonchat-avatar59', gender: 'woman', style: 'cute' },
+        { id: 24, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=badgirl', name: 'Bad Girl', category: 'premium', price: 79, razorpayLink: 'https://rzp.io/l/neonchat-avatar79', gender: 'woman', style: 'gangster' },
+        { id: 25, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=chamak', name: 'Chamak Challo', category: 'premium', price: 69, razorpayLink: 'https://rzp.io/l/neonchat-avatar69', gender: 'girl', style: 'funny' },
+        { id: 26, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=chand', name: 'Chand Sitaare', category: 'premium', price: 49, razorpayLink: 'https://rzp.io/l/neonchat-avatar49', gender: 'girl', style: 'cute' },
+        { id: 27, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=doll', name: 'Doll Face', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-avatar39', gender: 'girl', style: 'cute' },
+        { id: 28, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=shero', name: 'Shero Wali', category: 'premium', price: 89, razorpayLink: 'https://rzp.io/l/neonchat-avatar89', gender: 'woman', style: 'gangster' },
+        { id: 29, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=masoom', name: 'Masoom Sa', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29', gender: 'girl', style: 'cute' },
+        { id: 30, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=heroine', name: 'Heroine No. 1', category: 'premium', price: 79, razorpayLink: 'https://rzp.io/l/neonchat-avatar79', gender: 'woman', style: 'funny' },
+        
+        // More Funny Names (20)
+        { id: 31, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=robot1', name: 'Robot Chacha', category: 'premium', price: 49, razorpayLink: 'https://rzp.io/l/neonchat-avatar49', gender: 'boy', style: 'funny' },
+        { id: 32, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=robot2', name: 'Chipku Singh', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-avatar39', gender: 'boy', style: 'funny' },
+        { id: 33, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=robot3', name: 'Laddu Ji', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29', gender: 'boy', style: 'funny' },
+        { id: 34, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=robot4', name: 'Golu Molu', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-avatar39', gender: 'boy', style: 'funny' },
+        { id: 35, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=robot5', name: 'Bakchod Bhai', category: 'premium', price: 49, razorpayLink: 'https://rzp.io/l/neonchat-avatar49', gender: 'man', style: 'funny' },
+        
+        // More Gangster Names (20)
+        { id: 36, url: 'https://api.dicebear.com/7.x/micah/svg?seed=gang1', name: 'Khalnayak', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-avatar99', gender: 'man', style: 'gangster' },
+        { id: 37, url: 'https://api.dicebear.com/7.x/micah/svg?seed=gang2', name: 'Dabangg', category: 'premium', price: 89, razorpayLink: 'https://rzp.io/l/neonchat-avatar89', gender: 'man', style: 'gangster' },
+        { id: 38, url: 'https://api.dicebear.com/7.x/micah/svg?seed=gang3', name: 'Bhai Saab', category: 'premium', price: 79, razorpayLink: 'https://rzp.io/l/neonchat-avatar79', gender: 'man', style: 'gangster' },
+        { id: 39, url: 'https://api.dicebear.com/7.x/micah/svg?seed=gang4', name: 'Don Corleone', category: 'premium', price: 129, razorpayLink: 'https://rzp.io/l/neonchat-avatar129', gender: 'man', style: 'gangster' },
+        { id: 40, url: 'https://api.dicebear.com/7.x/micah/svg?seed=gang5', name: 'Gangster Girl', category: 'premium', price: 89, razorpayLink: 'https://rzp.io/l/neonchat-avatar89', gender: 'woman', style: 'gangster' },
+        
+        // More Cute Names (20)
+        { id: 41, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=cute1', name: 'Chotu Baby', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29', gender: 'boy', style: 'cute' },
+        { id: 42, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=cute2', name: 'Pari Jaisi', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-avatar39', gender: 'girl', style: 'cute' },
+        { id: 43, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=cute3', name: 'Sweetu', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29', gender: 'girl', style: 'cute' },
+        { id: 44, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=cute4', name: 'Baby Doll', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-avatar39', gender: 'girl', style: 'cute' },
+        { id: 45, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=cute5', name: 'Chand Ka Tukda', category: 'premium', price: 49, razorpayLink: 'https://rzp.io/l/neonchat-avatar49', gender: 'girl', style: 'cute' },
+        
+        // Ultra Premium Exclusive (15)
+        { id: 46, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=king', name: 'King of Mumbai', category: 'premium', price: 299, razorpayLink: 'https://rzp.io/l/neonchat-avatar299', gender: 'man', style: 'gangster' },
+        { id: 47, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=queen2', name: 'Queen of Hearts', category: 'premium', price: 299, razorpayLink: 'https://rzp.io/l/neonchat-avatar299', gender: 'woman', style: 'gangster' },
+        { id: 48, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=legend', name: 'Living Legend', category: 'premium', price: 499, razorpayLink: 'https://rzp.io/l/neonchat-avatar499', gender: 'man', style: 'gangster' },
+        { id: 49, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=godfather', name: 'Godfather', category: 'premium', price: 999, razorpayLink: 'https://rzp.io/l/neonchat-avatar999', gender: 'man', style: 'gangster' },
+        { id: 50, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=empress', name: 'Empress', category: 'premium', price: 999, razorpayLink: 'https://rzp.io/l/neonchat-avatar999', gender: 'woman', style: 'gangster' },
+        
+        // Special Category - Mixed (25)
+        { id: 51, url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=style1', name: 'Style King', category: 'premium', price: 149, razorpayLink: 'https://rzp.io/l/neonchat-avatar149', gender: 'man', style: 'funny' },
+        { id: 52, url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=style2', name: 'Fashion Queen', category: 'premium', price: 149, razorpayLink: 'https://rzp.io/l/neonchat-avatar149', gender: 'woman', style: 'cute' },
+        { id: 53, url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=style3', name: 'Jhatka King', category: 'premium', price: 79, razorpayLink: 'https://rzp.io/l/neonchat-avatar79', gender: 'boy', style: 'funny' },
+        { id: 54, url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=style4', name: 'Dhinka Chika', category: 'premium', price: 89, razorpayLink: 'https://rzp.io/l/neonchat-avatar89', gender: 'man', style: 'funny' },
+        { id: 55, url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=style5', name: 'Disco Dancer', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-avatar99', gender: 'man', style: 'funny' },
+        
+        // Additional 45 avatars to reach 100 total
+        { id: 56, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=chulbul', name: 'Chulbul Pandey', category: 'premium', price: 129, razorpayLink: 'https://rzp.io/l/neonchat-avatar129', gender: 'man', style: 'gangster' },
+        { id: 57, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=rocky2', name: 'Rocky Randhawa', category: 'premium', price: 119, razorpayLink: 'https://rzp.io/l/neonchat-avatar119', gender: 'man', style: 'gangster' },
+        { id: 58, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=munna', name: 'Munna Bhai', category: 'premium', price: 109, razorpayLink: 'https://rzp.io/l/neonchat-avatar109', gender: 'man', style: 'gangster' },
+        { id: 59, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=circuit', name: 'Circuit', category: 'premium', price: 89, razorpayLink: 'https://rzp.io/l/neonchat-avatar89', gender: 'boy', style: 'funny' },
+        { id: 60, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=baburao', name: 'Baburao Ganpatrao', category: 'premium', price: 139, razorpayLink: 'https://rzp.io/l/neonchat-avatar139', gender: 'man', style: 'funny' },
+        
+        // Girls Special
+        { id: 61, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=anjali', name: 'Anjali Sweet', category: 'premium', price: 49, razorpayLink: 'https://rzp.io/l/neonchat-avatar49', gender: 'girl', style: 'cute' },
+        { id: 62, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=priya', name: 'Priya Darling', category: 'premium', price: 59, razorpayLink: 'https://rzp.io/l/neonchat-avatar59', gender: 'girl', style: 'cute' },
+        { id: 63, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=simran', name: 'Simran Jaan', category: 'premium', price: 69, razorpayLink: 'https://rzp.io/l/neonchat-avatar69', gender: 'woman', style: 'cute' },
+        { id: 64, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=kajol', name: 'Kajol Beauty', category: 'premium', price: 79, razorpayLink: 'https://rzp.io/l/neonchat-avatar79', gender: 'woman', style: 'cute' },
+        { id: 65, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=aish', name: 'Aish Queen', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-avatar99', gender: 'woman', style: 'cute' },
+        
+        // More Funny Boys
+        { id: 66, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=funny1', name: 'Lucky Lucky', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-avatar39', gender: 'boy', style: 'funny' },
+        { id: 67, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=funny2', name: 'Happy Singh', category: 'premium', price: 49, razorpayLink: 'https://rzp.io/l/neonchat-avatar49', gender: 'boy', style: 'funny' },
+        { id: 68, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=funny3', name: 'Jolly LLB', category: 'premium', price: 59, razorpayLink: 'https://rzp.io/l/neonchat-avatar59', gender: 'man', style: 'funny' },
+        { id: 69, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=funny4', name: 'Masti Wala', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-avatar39', gender: 'boy', style: 'funny' },
+        { id: 70, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=funny5', name: 'Hasu Hasu', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-avatar29', gender: 'boy', style: 'funny' },
+        
+        // Complete the set to 100
+        { id: 71, url: 'https://api.dicebear.com/7.x/micah/svg?seed=final1', name: 'Last Don', category: 'premium', price: 199, razorpayLink: 'https://rzp.io/l/neonchat-avatar199', gender: 'man', style: 'gangster' },
+        { id: 72, url: 'https://api.dicebear.com/7.x/micah/svg?seed=final2', name: 'Final Boss', category: 'premium', price: 299, razorpayLink: 'https://rzp.io/l/neonchat-avatar299', gender: 'man', style: 'gangster' },
+        { id: 73, url: 'https://api.dicebear.com/7.x/micah/svg?seed=final3', name: 'Game Over', category: 'premium', price: 399, razorpayLink: 'https://rzp.io/l/neonchat-avatar399', gender: 'man', style: 'gangster' },
+        { id: 74, url: 'https://api.dicebear.com/7.x/micah/svg?seed=final4', name: 'King Kong', category: 'premium', price: 259, razorpayLink: 'https://rzp.io/l/neonchat-avatar259', gender: 'man', style: 'gangster' },
+        { id: 75, url: 'https://api.dicebear.com/7.x/micah/svg?seed=final5', name: 'Hulk Bhai', category: 'premium', price: 179, razorpayLink: 'https://rzp.io/l/neonchat-avatar179', gender: 'man', style: 'gangster' },
+        
+        // Last 25 premium avatars
+        { id: 76, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=premium1', name: 'Pixel King', category: 'premium', price: 89, razorpayLink: 'https://rzp.io/l/neonchat-avatar89', gender: 'boy', style: 'funny' },
+        { id: 77, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=premium2', name: 'Digital Don', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-avatar99', gender: 'man', style: 'gangster' },
+        { id: 78, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=premium3', name: 'Cyber Cutie', category: 'premium', price: 79, razorpayLink: 'https://rzp.io/l/neonchat-avatar79', gender: 'girl', style: 'cute' },
+        { id: 79, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=premium4', name: 'Tech Tiger', category: 'premium', price: 119, razorpayLink: 'https://rzp.io/l/neonchat-avatar119', gender: 'man', style: 'gangster' },
+        { id: 80, url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=premium5', name: 'Code Queen', category: 'premium', price: 109, razorpayLink: 'https://rzp.io/l/neonchat-avatar109', gender: 'woman', style: 'gangster' },
+        
+        // Final 20
+        { id: 81, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=ultimate1', name: 'Ultimate Boss', category: 'premium', price: 499, razorpayLink: 'https://rzp.io/l/neonchat-avatar499', gender: 'man', style: 'gangster' },
+        { id: 82, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=ultimate2', name: 'Supreme Leader', category: 'premium', price: 599, razorpayLink: 'https://rzp.io/l/neonchat-avatar599', gender: 'man', style: 'gangster' },
+        { id: 83, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=ultimate3', name: 'Mafia King', category: 'premium', price: 699, razorpayLink: 'https://rzp.io/l/neonchat-avatar699', gender: 'man', style: 'gangster' },
+        { id: 84, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=ultimate4', name: 'Cartel Queen', category: 'premium', price: 699, razorpayLink: 'https://rzp.io/l/neonchat-avatar699', gender: 'woman', style: 'gangster' },
+        { id: 85, url: 'https://api.dicebear.com/7.x/identicon/svg?seed=ultimate5', name: 'Godmother', category: 'premium', price: 799, razorpayLink: 'https://rzp.io/l/neonchat-avatar799', gender: 'woman', style: 'gangster' },
+        
+        // Last 15
+        { id: 86, url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=last1', name: 'Final Fantasy', category: 'premium', price: 159, razorpayLink: 'https://rzp.io/l/neonchat-avatar159', gender: 'boy', style: 'funny' },
+        { id: 87, url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=last2', name: 'Last Laugh', category: 'premium', price: 139, razorpayLink: 'https://rzp.io/l/neonchat-avatar139', gender: 'man', style: 'funny' },
+        { id: 88, url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=last3', name: 'Sweet Ending', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-avatar99', gender: 'girl', style: 'cute' },
+        { id: 89, url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=last4', name: 'Happy Ending', category: 'premium', price: 119, razorpayLink: 'https://rzp.io/l/neonchat-avatar119', gender: 'woman', style: 'cute' },
+        { id: 90, url: 'https://api.dicebear.com/7.x/lorelei/svg?seed=last5', name: 'The End Boss', category: 'premium', price: 299, razorpayLink: 'https://rzp.io/l/neonchat-avatar299', gender: 'man', style: 'gangster' },
+        
+        // Final 10
+        { id: 91, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=century1', name: 'Century King', category: 'premium', price: 199, razorpayLink: 'https://rzp.io/l/neonchat-avatar199', gender: 'man', style: 'gangster' },
+        { id: 92, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=century2', name: 'Hundred Wala', category: 'premium', price: 149, razorpayLink: 'https://rzp.io/l/neonchat-avatar149', gender: 'boy', style: 'funny' },
+        { id: 93, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=century3', name: 'Sau Ka Sikandar', category: 'premium', price: 199, razorpayLink: 'https://rzp.io/l/neonchat-avatar199', gender: 'man', style: 'gangster' },
+        { id: 94, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=century4', name: '100 Wali Queen', category: 'premium', price: 199, razorpayLink: 'https://rzp.io/l/neonchat-avatar199', gender: 'woman', style: 'gangster' },
+        { id: 95, url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=century5', name: 'Sau Rupaye Wala', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-avatar99', gender: 'boy', style: 'funny' },
+        
+        // Last 5
+        { id: 96, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=finalfinal1', name: 'Antim Avatar', category: 'premium', price: 399, razorpayLink: 'https://rzp.io/l/neonchat-avatar399', gender: 'man', style: 'gangster' },
+        { id: 97, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=finalfinal2', name: 'Last Avatar', category: 'premium', price: 299, razorpayLink: 'https://rzp.io/l/neonchat-avatar299', gender: 'woman', style: 'gangster' },
+        { id: 98, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=finalfinal3', name: 'Final Form', category: 'premium', price: 499, razorpayLink: 'https://rzp.io/l/neonchat-avatar499', gender: 'man', style: 'gangster' },
+        { id: 99, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=finalfinal4', name: 'Ultimate Form', category: 'premium', price: 599, razorpayLink: 'https://rzp.io/l/neonchat-avatar599', gender: 'woman', style: 'gangster' },
+        { id: 100, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=finalfinal5', name: 'The Legend', category: 'premium', price: 999, razorpayLink: 'https://rzp.io/l/neonchat-avatar999', gender: 'man', style: 'gangster' }
     ];
     
     localStorage.setItem('neonchat_avatars', JSON.stringify(avatars));
 }
+
 
 function loadAvatarsStore(category = 'all') {
     const avatars = JSON.parse(localStorage.getItem('neonchat_avatars') || '[]');
@@ -2978,10 +3219,10 @@ function applyThemeColor(color, themeId = null) {
     }
 }
 
-// Enhanced Sticker Functions with 50 New Stickers
+// Enhanced Stickers with Hindi Language - All Paid at INR 39
 function initializeStickers() {
     const stickers = [
-        // Free Stickers (10)
+        // Free Stickers (10) - Keep existing
         { id: 1, text: '😊', name: 'Smile', category: 'free', price: 0, razorpayLink: '' },
         { id: 2, text: '😂', name: 'Laugh', category: 'free', price: 0, razorpayLink: '' },
         { id: 3, text: '❤️', name: 'Heart', category: 'free', price: 0, razorpayLink: '' },
@@ -2993,56 +3234,256 @@ function initializeStickers() {
         { id: 9, text: '😎', name: 'Cool', category: 'free', price: 0, razorpayLink: '' },
         { id: 10, text: '🤩', name: 'Star Eyes', category: 'free', price: 0, razorpayLink: '' },
         
-        // Premium Stickers (90) - All priced at 29 INR with Razorpay Links
-        { id: 11, text: '🥳', name: 'Celebration', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 12, text: '😍', name: 'Love', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 13, text: '🤗', name: 'Hug', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 14, text: '😇', name: 'Angel', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 15, text: '🤠', name: 'Cowboy', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 16, text: '🤡', name: 'Clown', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 17, text: '👻', name: 'Ghost', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 18, text: '💀', name: 'Skull', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 19, text: '👽', name: 'Alien', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 20, text: '🤖', name: 'Robot', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
+        // Hindi Language Stickers - All Premium at INR 39
+        { id: 11, text: '💪', name: 'Mar Dunga', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 12, text: '🐕', name: 'Saale Kutte', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 13, text: '⏰', name: 'Bataun Abhi', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 14, text: '🙅', name: 'Na Maane', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 15, text: '👑', name: 'Baap Hu Main', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 16, text: '💔', name: 'Dil Tod Diya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 17, text: '🎯', name: 'Sahi Pakde', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 18, text: '🤬', name: 'Gussa Aa Raha', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 19, text: '😈', name: 'Bhoot Banega', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 20, text: '🤑', name: 'Paisa Hi Paisa', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 21, text: '🤣', name: 'Has Has Ke Pet Dard', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 22, text: '🙏', name: 'Bhagwan Bharose', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 23, text: '💀', name: 'Maut Aa Gayi', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 24, text: '👊', name: 'Chamatkar Hogaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 25, text: '🤝', name: 'Dost Hai Bhai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 26, text: '😴', name: 'Neend Aa Rahi', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 27, text: '🍻', name: 'Party Shuru', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 28, text: '📚', name: 'Padhle BSDK', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 29, text: '🎵', name: 'Gaana Bajega', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 30, text: '🍕', name: 'Bhookh Lagi Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 31, text: '🚀', name: 'Udd Ja Re', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 32, text: '💖', name: 'Pyaar Ho Gaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 33, text: '😭', name: 'Rona Aa Raha', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 34, text: '🤔', name: 'Soch Raha Hu', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 35, text: '🎭', name: 'Natak Mat Kar', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 36, text: '💼', name: 'Kaam Important Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 37, text: '🏆', name: 'Jeet Gaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 38, text: '🤫', name: 'Chup Reh', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 39, text: '👀', name: 'Kya Dekh Raha', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 40, text: '💩', name: 'Tatti Kar Diya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 41, text: '🎮', name: 'Game Khelte Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 42, text: '📱', name: 'Phone Uthale', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 43, text: '🌧️', name: 'Bahar Barish Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 44, text: '🍦', name: 'Ice Cream Khayega', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 45, text: '🤸', name: 'Masti Karo', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 46, text: '💍', name: 'Shadi Karle', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 47, text: '🚫', name: 'Band Kar De', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 48, text: '✅', name: 'Theek Hai Bhai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 49, text: '❌', name: 'Nahi Chalega', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 50, text: '⚡', name: 'Jhatpat Kar', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 51, text: '🌙', name: 'So Ja Bhai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 52, text: '☀️', name: 'Good Morning', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 53, text: '📞', name: 'Call Kar', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 54, text: '📍', name: 'Kidhar Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 55, text: '⏳', name: 'Wait Kar', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 56, text: '🎁', name: 'Gift De De', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 57, text: '🤗', name: 'Gale Lag Ja', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 58, text: '😘', name: 'Pyaar Se Dekh', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 59, text: '🤪', name: 'Pagal Hai Kya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 60, text: '👑', name: 'King Hai Tu', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+                
+        // Romantic & Love (10)
+        { id: 101, text: '💖🤗', name: 'Pyaar Ki Garmi', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 102, text: '🥰👀', name: 'Dil Ki Baat', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 103, text: '💘💌', name: 'Love Letter', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 104, text: '🌹💋', name: 'Pyaar Mohabbat', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 105, text: '💑🎶', name: 'Romantic Mood', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 106, text: '💞✨', name: 'Dil Dance Maare', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 107, text: '🥂💕', name: 'Cheers Pyaar Mein', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 108, text: '💓🌙', name: 'Chand Taare', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 109, text: '💝🎁', name: 'Dil Ki Gift', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 110, text: '👫💫', name: 'Hum Dono', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Funny & Comedy (15)
+        { id: 201, text: '🤣💥', name: 'Has Has Ke Fatega', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 202, text: '😂🔄', name: 'Repeat Kar De Bhai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 203, text: '😜🎭', name: 'Masti Time', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 204, text: '🤪🚀', name: 'Uda De Re Baba', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 205, text: '🤑💰', name: 'Paisa Vasool', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 206, text: '😎🕶️', name: 'Cool Dude', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 207, text: '🤡🎪', name: 'Bakchodi Maximum', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 208, text: '💩🤦', name: 'Yaar Kya Karu', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 209, text: '🍻🎊', name: 'Party To Banti Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 210, text: '🤣📈', name: 'Comedy King', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 211, text: '😆🎬', name: 'Scene Palat Gaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 212, text: '🤭🔊', name: 'Chup Kar Yaar', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 213, text: '💀⚰️', name: 'Maut Aagayi', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 214, text: '🎭🤡', name: 'Natak Kar Raha', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 215, text: '🍕🤤', name: 'Bhookh Lagi Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Anger & Attitude (10)
+        { id: 301, text: '😠💢', name: 'Gussa Aa Raha', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 302, text: '👊💥', name: 'Chamatkar Hogaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 303, text: '🤬🔥', name: 'Khoon Khaul Gaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 304, text: '💪😤', name: 'Mar Dunga', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 305, text: '🐕👊', name: 'Saale Kutte', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 306, text: '👑😠', name: 'Baap Hu Main', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 307, text: '⚡🤬', name: 'Jhatka De Dunga', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 308, text: '💣👿', name: 'Bhoot Banega', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 309, text: '🛑😡', name: 'Bas Kar Yaar', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 310, text: '💀☠️', name: 'Maut Ka Khel', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Sad & Emotional (8)
+        { id: 401, text: '😢💔', name: 'Dil Tod Diya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 402, text: '🌧️😭', name: 'Rona Aa Raha', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 403, text: '🎵💔', name: 'Dard Bhara Gaana', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 404, text: '☔😔', name: 'Dil Dukha Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 405, text: '⛈️😞', name: 'Zindagi Barbaad', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 406, text: '🌑💧', name: 'Aansu Aa Gaye', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 407, text: '🎭😢', name: 'Drama Queen', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 408, text: '🚶💔', name: 'Akela Chhod Diya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Celebration & Party (7)
+        { id: 501, text: '🎉🥳', name: 'Jashn Manao', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 502, text: '🏆🎊', name: 'Jeet Gaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 503, text: '💃🕺', name: 'Nacho Beta', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 504, text: '🎂🎈', name: 'Happy Birthday', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 505, text: '✨🌟', name: 'Shining Star', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 506, text: '🎯🥇', name: 'Champion Hai Hum', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 507, text: '🚀🎇', name: 'Success Party', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Friendship & Support (6)
+        { id: 601, text: '🤝💪', name: 'Dost Hai Bhai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 602, text: '👬🌈', name: 'Yaari Dosti', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 603, text: '💖🤗', name: 'Hug De Bhai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 604, text: '🎯👊', name: 'Sahi Pakde Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 605, text: '🛡️💫', name: 'Main Hoon Na', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 606, text: '🌟🤝', name: 'Best Friend Forever', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Food & Cravings (8)
+        { id: 701, text: '🍕🤤', name: 'Pizza Khayega?', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 702, text: '🍔🥤', name: 'Burger Time', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 703, text: '🍦😋', name: 'Ice Cream Lelo', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 704, text: '🍫💖', name: 'Chocolate De Do', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 705, text: '☕📚', name: 'Chai Sutta Time', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 706, text: '🍿🎬', name: 'Movie Night', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 707, text: '🍽️👨‍🍳', name: 'Khana Ban Gaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 708, text: '🥘🎉', name: 'Party Food Ready', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Gaming & Tech (6)
+        { id: 801, text: '🎮🔥', name: 'Game Khelte Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 802, text: '📱💻', name: 'Tech Savvy', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 803, text: '⚡🎯', name: 'Pro Gamer', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 804, text: '👾💾', name: 'Geek Mode On', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 805, text: '🎲🎰', name: 'Luck Test Karo', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 806, text: '🚀🌌', name: 'Future Tech', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+                // Family & Relatives (10)
+        { id: 1201, text: '👵💬', name: 'Mummy Ka Call', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1202, text: '👴📞', name: 'Papa Ka Pressure', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1203, text: '👨‍👩‍👧‍👦💭', name: 'Family Meeting', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1204, text: '👵🍛', name: 'Ghar Ka Khana', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1205, text: '👴🗣️', name: 'Papa Ki Daant', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1206, text: '👵💰', name: 'Pocket Money Plz', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1207, text: '👨‍👩‍👧‍👦🎯', name: 'Shaadi Ki Umar', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1208, text: '👵📚', name: 'Padhai Karo Beta', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1209, text: '👴💼', name: 'Job Dhundho Beta', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1210, text: '👵❤️', name: 'Mummy Ka Pyaar', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // College & Student Life (8)
+        { id: 1301, text: '📚😫', name: 'Backlogs Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1302, text: '🎒🏃', name: 'Late Ho Gaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1303, text: '📝🤯', name: 'Exam Pressure', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1304, text: '👨‍🏫😴', name: 'Boring Lecture', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1305, text: '📖💤', name: 'Padhke Neend Aayi', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1306, text: '🎓🎉', name: 'Degree Mil Gayi', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1307, text: '👨‍🎓💼', name: 'Campus Placement', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1308, text: '📚☕', name: 'Chai Sutta Break', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Office & Work Life (8)
+        { id: 1401, text: '💼😫', name: 'Monday Blues', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1402, text: '👨‍💼🗣️', name: 'Boss Ki Daant', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1403, text: '📊😵', name: 'Excel Sheet Dikhado', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1404, text: '💻🎮', name: 'Work From Home', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1405, text: '💰💸', name: 'Salary Aagayi', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1406, text: '📅😌', name: 'Weekend Plan', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1407, text: '👔😓', name: 'Meeting Chal Raha', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1408, text: '💼🚶', name: 'Office Jaana Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Mumbai & Local Life (8)
+        { id: 1501, text: '🚆💨', name: 'Local Pakadna Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1502, text: '🚗😫', name: 'Traffic Mein Fass Gaye', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1503, text: '🌧️☔', name: 'Barish Mein Bhig Gaye', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1504, text: '🍜😋', name: 'Street Food Khayega?', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1505, text: '🏠💸', name: 'Rent Bharna Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1506, text: '🚶‍♂️🏃', name: 'Auto Pakadna Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1507, text: '🌃✨', name: 'Marine Drive Chill', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1508, text: '🛵💨', name: 'Bike Pe Ghumne Chalte', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Relationship & Dating (8)
+        { id: 1601, text: '💑📱', name: 'Girlfriend Ka Msg', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1602, text: '👫😠', name: 'Jhagda Ho Gaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1603, text: '❤️📞', name: 'Miss You Call', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1604, text: '🎁💝', name: 'Gift Le Aaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1605, text: '💔😢', name: 'Breakup Ho Gaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1606, text: '👫🍽️', name: 'Date Pe Chalte Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1607, text: '💖📲', name: 'Good Morning Msg', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1608, text: '👫🎬', name: 'Movie Date Plan', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Money & Finance (6)
+        { id: 1701, text: '💰😫', name: 'Paisa Khtm Ho Gaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1702, text: '💸🛒', name: 'Shopping Kar Li', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1703, text: '🏦😌', name: 'Loan Chukaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1704, text: '💳😵', name: 'Credit Card Bill', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1705, text: '💰🤝', name: 'Udhaar Chahiye', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1706, text: '💸🎯', name: 'Saving Kar Raha', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Health & Fitness (6)
+        { id: 1801, text: '🏃‍♂️💦', name: 'Gym Jaana Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1802, text: '🍎💪', name: 'Dieting Kar Raha', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1803, text: '🤒💊', name: 'Bimar Pad Gaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1804, text: '💉😫', name: 'Doctor Ke Paas Jaana', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1805, text: '🧘‍♂️😌', name: 'Yoga Kar Raha', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1806, text: '💪🎯', name: 'Body Ban Raha', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Ultra Relatable Indian (8)
+        { id: 1901, text: '⚡🤯', name: 'Current Chala Gaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1902, text: '📶😫', name: 'Network Nahi Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1903, text: '🛵⛽', name: 'Petrol Khatam', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1904, text: '📱🔋', name: 'Phone Charge Nahi', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1905, text: '🌧️🏠', name: 'Ghar Pe Reh Lete', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1906, text: '🍜😋', name: 'Maggie Banate Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1907, text: '📺🛋️', name: 'TV Dekh Rahe', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 1908, text: '🛌😴', name: 'Aaj To Sona Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // WhatsApp Forward Specials (6)
+        { id: 2001, text: '📱🔁', name: 'Good Morning Forward', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 2002, text: '🙏📲', name: 'Auntie Ka Msg', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 2003, text: '🔄😴', name: 'Good Night Forward', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 2004, text: '📜🙏', name: 'Motivational Quote', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 2005, text: '😂📹', name: 'Funny Video Forward', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 2006, text: '🔗📱', name: 'Link Bhej Raha', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Premium Ultra Relatable (4)
+        { id: 2101, text: '🏠💼', name: 'Ghar Wapsi', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-sticker99' },
+        { id: 2102, text: '👨‍👩‍👧‍👦🎉', name: 'Family Function', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-sticker99' },
+        { id: 2103, text: '💑🏠', name: 'Rishta Aaya Hai', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-sticker99' },
         
-        // Continue with more stickers...
-        { id: 21, text: '🎃', name: 'Pumpkin', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 22, text: '🎄', name: 'Christmas Tree', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 23, text: '🎁', name: 'Gift', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 24, text: '🎊', name: 'Confetti', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 25, text: '🎈', name: 'Balloon', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 26, text: '💌', name: 'Love Letter', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 27, text: '💘', name: 'Heart Arrow', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 28, text: '💝', name: 'Heart Ribbon', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 29, text: '💖', name: 'Sparkling Heart', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 30, text: '💗', name: 'Growing Heart', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        
-        // Add 20 more stickers to reach 50 total
-        { id: 31, text: '💓', name: 'Beating Heart', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 32, text: '💞', name: 'Revolving Hearts', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 33, text: '💕', name: 'Two Hearts', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 34, text: '💟', name: 'Heart Decoration', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 35, text: '❣️', name: 'Heart Exclamation', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 36, text: '💔', name: 'Broken Heart', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 37, text: '❤️‍🔥', name: 'Heart on Fire', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 38, text: '❤️‍🩹', name: 'Mending Heart', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 39, text: '🧡', name: 'Orange Heart', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 40, text: '💛', name: 'Yellow Heart', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 41, text: '💚', name: 'Green Heart', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 42, text: '💙', name: 'Blue Heart', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 43, text: '💜', name: 'Purple Heart', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 44, text: '🤎', name: 'Brown Heart', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 45, text: '🖤', name: 'Black Heart', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 46, text: '🤍', name: 'White Heart', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 47, text: '💋', name: 'Kiss Mark', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 48, text: '💯', name: 'Hundred Points', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 49, text: '💢', name: 'Anger Symbol', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' },
-        { id: 50, text: '💥', name: 'Collision', category: 'premium', price: 29, razorpayLink: 'https://rzp.io/l/neonchat-sticker29' }
+        // Special & Unique (10)
+        { id: 901, text: '🔮✨', name: 'Future Dekhte Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 902, text: '🎭🃏', name: 'Joker Card', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 903, text: '🌪️💫', name: 'Andhi Aagayi', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 904, text: '🦸⚡', name: 'Superhero Ban Gaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 905, text: '👻🎃', name: 'Bhootiya Time', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 906, text: '🧠💡', name: 'Idea Aa Gaya', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 907, text: '🎵🎤', name: 'Gaana Bajega', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 908, text: '📖✍️', name: 'Padhle BSDK', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 909, text: '🏃💨', name: 'Bhaag Milkha Bhaag', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+        { id: 910, text: '🛌😴', name: 'Neend Aa Rahi', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
+
+        // Ultra Premium Exclusive (5)
+        { id: 1001, text: '👑🔥', name: 'King of Chat', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-sticker99' },
+        { id: 1002, text: '💎🌟', name: 'Diamond Member', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-sticker99' },
+        { id: 1003, text: '🚀🌠', name: 'Chat Rocket', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-sticker99' },
+        { id: 1004, text: '🎭💫', name: 'Drama King', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-sticker99' },
     ];
     
     localStorage.setItem('neonchat_stickers', JSON.stringify(stickers));
 }
-
 function loadStickersStore(category = 'all') {
     const stickers = JSON.parse(localStorage.getItem('neonchat_stickers') || '[]');
     const stickersGrid = elements.stickersGrid;
