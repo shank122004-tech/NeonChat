@@ -16,6 +16,7 @@
     --neon-warning: #ffff00;
     --bg-primary: #0a0a16;
     --bg-secondary: #1a1a2e;
+    --chat-bg: var(--bg-primary);
 }
 
 html {
@@ -679,7 +680,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    background: var(--chat-bg);
     z-index: 20;
     display: flex;
     flex-direction: column;
@@ -2447,6 +2448,135 @@ body {
     font-weight: bold;
 }
 
+/* Chat Themes */
+.chat-themes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 1rem;
+}
+
+.chat-theme-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.chat-theme-item:hover {
+    border-color: var(--neon-primary);
+    background: rgba(255, 0, 222, 0.1);
+    transform: translateY(-2px);
+}
+
+.theme-preview {
+    width: 100%;
+    height: 80px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border: 2px solid var(--neon-primary);
+}
+
+.default-theme {
+    background: var(--bg-primary);
+}
+
+.neon-grid-theme {
+    background: linear-gradient(45deg, #0a0a16, #1a1a2e);
+    position: relative;
+    overflow: hidden;
+}
+
+.neon-grid-theme::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        linear-gradient(90deg, transparent 49%, var(--neon-primary) 50%, transparent 51%),
+        linear-gradient(0deg, transparent 49%, var(--neon-primary) 50%, transparent 51%);
+    background-size: 20px 20px;
+    opacity: 0.3;
+}
+
+.cyber-circuit-theme {
+    background: #0a0a16;
+    position: relative;
+    overflow: hidden;
+}
+
+.cyber-circuit-theme::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 30% 30%, var(--neon-primary) 0%, transparent 50%),
+        radial-gradient(circle at 70% 70%, var(--neon-secondary) 0%, transparent 50%);
+    opacity: 0.2;
+}
+
+.matrix-theme {
+    background: #000;
+    position: relative;
+    overflow: hidden;
+}
+
+.matrix-theme::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        linear-gradient(90deg, transparent 49%, var(--neon-success) 50%, transparent 51%),
+        linear-gradient(0deg, transparent 49%, var(--neon-success) 50%, transparent 51%);
+    background-size: 10px 10px;
+    opacity: 0.3;
+}
+
+.galaxy-theme {
+    background: linear-gradient(45deg, #000428, #004e92);
+    position: relative;
+    overflow: hidden;
+}
+
+.galaxy-theme::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, #fff 1px, transparent 1px),
+        radial-gradient(circle at 40% 20%, #fff 1px, transparent 1px),
+        radial-gradient(circle at 80% 50%, #fff 1px, transparent 1px);
+    background-size: 100px 100px;
+    opacity: 0.5;
+}
+
+.custom-theme {
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neon-primary);
+}
+
+.custom-theme-upload {
+    margin-top: 1rem;
+    text-align: center;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     .neon-text {
@@ -2535,6 +2665,10 @@ body {
     }
     
     .enhanced-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chat-themes-grid {
         grid-template-columns: 1fr;
     }
 }
