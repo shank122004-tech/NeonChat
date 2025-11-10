@@ -66,10 +66,6 @@
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="input-group">
-                        <input type="text" id="signup-username" placeholder="Username" required>
-                        <i class="fas fa-at"></i>
-                    </div>
-                    <div class="input-group">
                         <input type="email" id="signup-email" placeholder="Email" required>
                         <i class="fas fa-envelope"></i>
                     </div>
@@ -115,7 +111,7 @@
                         <i class="fas fa-gift"></i> Refer & Earn
                     </div>
                     <div class="menu-item" id="stories-btn">
-                        <i class="fas fa-circle"></i> My Stories
+                        <i class="fas fa-circle"></i> coming soon
                     </div>
                     <div class="menu-item" id="logout-btn">
                         <i class="fas fa-sign-out-alt"></i> Logout
@@ -124,18 +120,7 @@
             </div>
         </header>
 
-        <!-- Stories Section -->
-        <div class="stories-container">
-            <div class="stories-scroll">
-                <div class="story-item add-story">
-                    <div class="story-circle">
-                        <i class="fas fa-plus"></i>
-                    </div>
-                    <span>Add Story</span>
-                </div>
-                <!-- Stories will be populated here -->
-            </div>
-        </div>
+        
 
         <!-- Navigation -->
         <nav class="app-nav">
@@ -184,7 +169,7 @@
                     <button class="neon-btn-small" id="add-contact-btn">+ Add Contact</button>
                 </div>
                 <div class="suggested-contacts">
-                    <h4>Suggested Friends</h4>
+                    <h4></h4>
                     <div class="suggested-list scrollable" id="suggested-contacts-list">
                         <!-- Suggested contacts will be populated here -->
                     </div>
@@ -277,7 +262,7 @@
                             <input type="text" id="profile-name" placeholder="Your Name" required>
                         </div>
                         <div class="input-group">
-                            <input type="text" id="profile-username" placeholder="Username" required>
+                            <input type="text" id="profile-username" placeholder="Choose Username" required>
                         </div>
                         <div class="input-group">
                             <input type="email" id="profile-email" placeholder="Your Email" required readonly>
@@ -414,22 +399,7 @@
                 <div class="input-group">
                     <textarea id="group-description" placeholder="Group Description"></textarea>
                 </div>
-                <div class="group-avatar-section">
-                    <h4>Group Avatar</h4>
-                    <div class="group-avatar-options">
-                        <div class="group-avatar-option active" data-type="default">
-                            <i class="fas fa-users"></i>
-                            <span>Default</span>
-                        </div>
-                        <div class="group-avatar-option" data-type="gallery">
-                            <i class="fas fa-image"></i>
-                            <span>Gallery</span>
-                        </div>
-                        <div class="group-avatar-option" data-type="avatar">
-                            <i class="fas fa-user-circle"></i>
-                            <span>Avatar</span>
-                        </div>
-                    </div>
+                
                     <div class="group-avatar-preview">
                         <img id="group-avatar-preview" src="" alt="Group Avatar" style="display: none;">
                         <div id="group-default-avatar">
@@ -437,7 +407,7 @@
                         </div>
                     </div>
                     <input type="file" id="group-avatar-input" accept="image/*" style="display: none;">
-                    <button id="browse-avatars-btn" class="neon-btn-small" style="display: none;">Browse Avatars</button>
+                    <button id="browse-avatars-btn" class="neon-btn-small" style="display: none;"></button>
                 </div>
                 <div class="input-group">
                     <h4>Select Members</h4>
@@ -478,12 +448,10 @@
                         <img id="view-profile-pic" src="https://api.dicebear.com/7.x/adventurer/svg?seed=User" alt="Profile">
                         <div class="profile-lights"></div>
                     </div>
-                    <img id="view-profile-pic">
                     <h3 id="view-profile-name">User Name</h3>
                     <p id="view-profile-username">@username</p>
                     <p id="view-profile-email">user@example.com</p>
                     <p id="view-profile-bio" class="profile-bio">No bio yet</p>
-                    
                     
                     <div class="enhanced-stats-grid" id="enhanced-stats-grid">
                         <!-- Stats will be populated here -->
@@ -536,7 +504,7 @@
             <div class="modal-body">
                 <div class="group-info-view">
                     <div class="group-avatar-large">
-                        <img id="group-info-avatar" src="" alt="Group Avatar">
+                        
                     </div>
                     <h3 id="group-info-name">Group Name</h3>
                     <p id="group-info-description">No description</p>
@@ -613,7 +581,7 @@
                             <div class="theme-preview custom-theme">
                                 <i class="fas fa-upload"></i>
                             </div>
-                            <span></span>
+                            <span>Custom</span>
                         </div>
                     </div>
                     <div class="custom-theme-upload" id="custom-theme-upload" style="display: none;">
@@ -724,7 +692,6 @@
                         <ul>
                             <li>Your friend gets 1 free premium avatar</li>
                             <li>You get 1 random premium avatar when they sign up</li>
-                            
                             <li>Unlock exclusive features together</li>
                         </ul>
                     </div>
