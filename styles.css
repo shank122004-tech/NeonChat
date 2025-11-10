@@ -1891,59 +1891,7 @@ body {
     background: linear-gradient(45deg, #ff4444, #ff8800) !important;
 }
 
-/* Suggested Contacts */
-.suggested-contacts {
-    margin-bottom: 1.5rem;
-}
 
-.suggested-contacts h4 {
-    color: #fff;
-    margin-bottom: 10px;
-    font-size: 0.9rem;
-}
-
-.suggested-list {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding: 10px 0;
-}
-
-.suggested-contact {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 80px;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 0, 222, 0.3);
-    cursor: pointer;
-}
-
-.suggested-contact img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-bottom: 5px;
-}
-
-.suggested-contact span {
-    font-size: 0.7rem;
-    color: #fff;
-    text-align: center;
-}
-
-.add-contact-btn {
-    background: var(--neon-success);
-    color: #000;
-    border: none;
-    padding: 3px 8px;
-    border-radius: 5px;
-    font-size: 0.6rem;
-    cursor: pointer;
-    margin-top: 5px;
-}
 
 /* Story Upload */
 .story-upload-content {
@@ -3222,4 +3170,187 @@ body {
 .step-label {
     font-size: 0.8rem;
     color: #aaa;
+}
+/* Asteroid Animation Styles */
+@keyframes asteroidCrash {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(calc(50vw - 50px), calc(50vh - 50px)) rotate(180deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(calc(100vw - 100px), calc(100vh - 100px)) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes explosionEffect {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+    }
+}
+
+@keyframes chatDestruction {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        background: rgba(255, 0, 0, 0.3);
+    }
+    100% {
+        transform: scale(0);
+        opacity: 0;
+    }
+}
+
+.asteroid {
+    font-size: 3rem;
+    text-shadow: 0 0 20px #ff0000, 0 0 40px #ff5500;
+}
+
+.explosion {
+    font-size: 4rem;
+    text-shadow: 0 0 30px #ffff00, 0 0 60px #ffaa00;
+}
+
+.cosmic-delete {
+    background: linear-gradient(45deg, #ff0000, #ff5500) !important;
+    border: 2px solid #ffaa00 !important;
+    animation: cosmicPulse 2s infinite;
+}
+
+@keyframes cosmicPulse {
+    0%, 100% {
+        box-shadow: 0 0 5px #ff0000;
+    }
+    50% {
+        box-shadow: 0 0 20px #ff5500, 0 0 30px #ffaa00;
+    }
+}
+
+/* Enhanced Delete Button */
+.delete-chat-btn {
+    background: rgba(255, 0, 0, 0.2);
+    border: 1px solid #ff4444;
+    color: #ff4444;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+}
+
+.delete-chat-btn:hover {
+    background: #ff4444;
+    color: white;
+    box-shadow: 0 0 15px #ff4444;
+    transform: scale(1.1);
+}
+
+/* Hindi Sticker Styles */
+.sticker-store-item.hindi {
+    border-color: #ffaa00;
+    background: rgba(255, 170, 0, 0.1);
+}
+
+.sticker-store-item.hindi .sticker-circle {
+    border-color: #ffaa00;
+    box-shadow: 0 0 20px rgba(255, 170, 0, 0.5);
+}
+
+.sticker-store-item.hindi:hover .sticker-circle {
+    box-shadow: 0 0 30px #ffaa00;
+    transform: scale(1.15);
+}
+
+/* Premium Sticker Badge */
+.sticker-price.premium {
+    background: linear-gradient(45deg, #ffaa00, #ff5500);
+    color: #000;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+}
+
+/* Enhanced Chat Item Delete Animation */
+.chat-item {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.chat-item.deleting {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Razorpay Payment Integration */
+.razorpay-payment-btn {
+    background: linear-gradient(45deg, #528FF0, #00B9F1);
+    border: none;
+    border-radius: 25px;
+    color: white;
+    padding: 12px 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px auto;
+    box-shadow: 0 4px 15px rgba(82, 143, 240, 0.3);
+}
+
+.razorpay-payment-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(82, 143, 240, 0.4);
+}
+
+.razorpay-payment-btn i {
+    font-size: 1.2rem;
+}
+
+/* Sticker Lock Overlay */
+.sticker-locked {
+    position: relative;
+}
+
+.sticker-locked::after {
+    content: '🔒';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    background: rgba(0, 0, 0, 0.7);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    z-index: 2;
 }
