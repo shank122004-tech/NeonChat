@@ -131,7 +131,7 @@
                     <div class="story-circle">
                         <i class="fas fa-plus"></i>
                     </div>
-                    <span>story coming soon</span>
+                    <span>Add Story</span>
                 </div>
                 <!-- Stories will be populated here -->
             </div>
@@ -213,6 +213,9 @@
                     <button class="action-btn" id="chat-info-btn">
                         <i class="fas fa-info-circle"></i>
                     </button>
+                    <button class="action-btn" id="chat-theme-btn">
+                        <i class="fas fa-palette"></i>
+                    </button>
                 </div>
             </div>
             <div class="messages-container scrollable" id="messages-container">
@@ -286,13 +289,14 @@
                     </form>
                 </div>
 
-
-                <!-- Other Settings Sections -->
+                <!-- Settings Tabs -->
                 <div class="settings-tabs">
                     <div class="settings-tab active" data-tab="avatars">Avatar Store</div>
                     <div class="settings-tab" data-tab="my-avatars">My Avatars</div>
-                   
-                    
+                    <div class="settings-tab" data-tab="stickers-store">Sticker Store</div>
+                    <div class="settings-tab" data-tab="my-stickers">My Stickers</div>
+                    <div class="settings-tab" data-tab="themes-store">Theme Store</div>
+                    <div class="settings-tab" data-tab="my-themes">My Themes</div>
                 </div>
                 
                 <div class="settings-content">
@@ -300,6 +304,10 @@
                     <div id="avatars-settings" class="settings-panel active">
                         <h3>Premium Avatar Store</h3>
                         <p class="premium-subtitle">Buy exclusive neon avatars for your profile!</p>
+                        <div class="user-balance-display">
+                            <i class="fas fa-coins"></i>
+                            <span id="user-balance">Become Unique</span>
+                        </div>
                         <div class="avatar-categories">
                             <button class="avatar-category active" data-category="all">All</button>
                             <button class="avatar-category" data-category="free">Free</button>
@@ -329,7 +337,7 @@
                             <button class="sticker-category-btn" data-category="free">Free</button>
                             <button class="sticker-category-btn" data-category="premium">Premium</button>
                         </div>
-                        <div class="stickers-grid scrollable" id="settings-stickers-grid">
+                        <div class="stickers-grid scrollable" id="stickers-grid">
                             <!-- Stickers will be populated here -->
                         </div>
                     </div>
@@ -348,8 +356,24 @@
                     <!-- Themes Store -->
                     <div id="themes-store-settings" class="settings-panel">
                         <h3>Premium Themes Store</h3>
-                        <div class="theme-colors-grid">
-                            <!-- Additional premium themes will be populated here -->
+                        <div class="theme-categories">
+                            <button class="theme-category-btn active" data-category="all">All Themes</button>
+                            <button class="theme-category-btn" data-category="free">Free</button>
+                            <button class="theme-category-btn" data-category="premium">Premium</button>
+                        </div>
+                        <div class="theme-colors-grid" id="themes-grid">
+                            <!-- Themes will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- My Themes -->
+                    <div id="my-themes-settings" class="settings-panel">
+                        <h3>My Theme Collection</h3>
+                        <div class="collection-stats">
+                            <span class="stat-badge"><i class="fas fa-palette"></i> <span id="owned-themes-count">0</span> Themes</span>
+                        </div>
+                        <div class="theme-colors-grid" id="my-themes-grid">
+                            <div class="no-stickers">You don't have any themes yet. Visit the store to buy some!</div>
                         </div>
                     </div>
                 </div>
@@ -454,27 +478,21 @@
                         <img id="view-profile-pic" src="https://api.dicebear.com/7.x/adventurer/svg?seed=User" alt="Profile">
                         <div class="profile-lights"></div>
                     </div>
+                    <img id="view-profile-pic">
                     <h3 id="view-profile-name">User Name</h3>
                     <p id="view-profile-username">@username</p>
                     <p id="view-profile-email">user@example.com</p>
                     <p id="view-profile-bio" class="profile-bio">No bio yet</p>
                     
-                    <div class="profile-stats">
-                        <div class="stat">
-                            <span id="view-contacts-count">0</span>
-                            <small>Contacts</small>
-                        </div>
-                        <div class="stat">
-                            <span id="view-groups-count">0</span>
-                            <small>Groups</small>
-                        </div>
-                        <div class="stat">
-                            <span id="view-avatars-count">0</span>
-                            <small>Avatars</small>
-                        </div>
-                        <div class="stat">
-                            <span id="view-stickers-count">0</span>
-                            <small>Stickers</small>
+                    
+                    <div class="enhanced-stats-grid" id="enhanced-stats-grid">
+                        <!-- Stats will be populated here -->
+                    </div>
+                    
+                    <div class="purchase-history">
+                        <h4>Purchase History</h4>
+                        <div class="purchase-history-list scrollable" id="purchase-history-list">
+                            <!-- Purchase history will be populated here -->
                         </div>
                     </div>
                 </div>
@@ -534,6 +552,73 @@
                         <button class="neon-btn" id="exit-group-btn">Exit Group</button>
                         <button class="neon-btn" id="make-admin-btn" style="display: none;">Make Admin</button>
                         <button class="neon-btn" id="remove-member-btn" style="display: none;">Remove Member</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Theme Modal -->
+    <div id="chat-theme-modal" class="modal">
+        <div class="modal-content neon-border">
+            <div class="modal-header">
+                <h2>Chat Background Theme</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="theme-selection">
+                    <h3>Select Background Theme</h3>
+                    <div class="chat-themes-grid" id="chat-themes-grid">
+                        <div class="chat-theme-item" data-theme="default">
+                            <div class="theme-preview default-theme"></div>
+                            <span>Default</span>
+                        </div>
+                        <div class="chat-theme-item" data-theme="neon-grid">
+                            <div class="theme-preview neon-grid-theme"></div>
+                            <span>Neon Grid</span>
+                        </div>
+                        <div class="chat-theme-item" data-theme="cyber-circuit">
+                            <div class="theme-preview cyber-circuit-theme"></div>
+                            <span>Cyber Circuit</span>
+                        </div>
+                        <div class="chat-theme-item" data-theme="matrix">
+                            <div class="theme-preview matrix-theme"></div>
+                            <span>Matrix</span>
+                        </div>
+                        <div class="chat-theme-item" data-theme="galaxy">
+                            <div class="theme-preview galaxy-theme"></div>
+                            <span>Galaxy</span>
+                        </div>
+                        <div class="chat-theme-item" data-theme="nebula">
+                            <div class="theme-preview nebula-theme"></div>
+                            <span>Nebula</span>
+                        </div>
+                        <div class="chat-theme-item" data-theme="cyberpunk">
+                            <div class="theme-preview cyberpunk-theme"></div>
+                            <span>Cyberpunk</span>
+                        </div>
+                        <div class="chat-theme-item" data-theme="synthwave">
+                            <div class="theme-preview synthwave-theme"></div>
+                            <span>Synthwave</span>
+                        </div>
+                        <div class="chat-theme-item" data-theme="hologram">
+                            <div class="theme-preview hologram-theme"></div>
+                            <span>Hologram</span>
+                        </div>
+                        <div class="chat-theme-item" data-theme="circuit-board">
+                            <div class="theme-preview circuit-board-theme"></div>
+                            <span>Circuit Board</span>
+                        </div>
+                        <div class="chat-theme-item" data-theme="custom">
+                            <div class="theme-preview custom-theme">
+                                <i class="fas fa-upload"></i>
+                            </div>
+                            <span></span>
+                        </div>
+                    </div>
+                    <div class="custom-theme-upload" id="custom-theme-upload" style="display: none;">
+                        <input type="file" id="custom-theme-input" accept="image/*">
+                        <button class="neon-btn-small" id="upload-theme-btn">Upload Image</button>
                     </div>
                 </div>
             </div>
@@ -603,7 +688,7 @@
                         <i class="fas fa-times-circle"></i>
                     </div>
                     <h3>Payment Failed</h3>
-                    <p>Your payment could not be processed. Please try again.</p>
+                    <p id="failed-message">Your payment could not be processed. Please try again.</p>
                     <button class="neon-btn" id="retry-payment-btn">Retry Payment</button>
                 </div>
             </div>
@@ -639,7 +724,7 @@
                         <ul>
                             <li>Your friend gets 1 free premium avatar</li>
                             <li>You get 1 random premium avatar when they sign up</li>
-                            <li>Both get 50 coins bonus</li>
+                            
                             <li>Unlock exclusive features together</li>
                         </ul>
                     </div>
