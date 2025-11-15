@@ -111,13 +111,13 @@
                         <i class="fas fa-gift"></i> Refer & Earn
                     </div>
                     <div class="menu-item" id="stories-btn">
-                        <i class="fas fa-circle"></i> coming soon
+                        <i class="fas fa-circle"></i>story coming soon
                     </div>
                     <div class="menu-item" id="logout-btn">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </div>
-                </div>
-            </div>
+                    <div class="menu-item" id="about-app-btn">
+            
         </header>
 
         
@@ -144,7 +144,7 @@
             <div id="chats-tab" class="tab-content active">
                 <div class="tab-header">
                     <h3>Recent Chats</h3>
-                    <button class="neon-btn-small" id="new-chat-btn">+ New Chat</button>
+                    <button class="neon-btn-small" id="new-chat-btn">+</button>
                 </div>
                 <div class="chats-list scrollable" id="chats-list">
                     <div class="no-chats">No chats yet. Start a new conversation!</div>
@@ -152,6 +152,10 @@
             </div>
 
             <!-- Groups Tab -->
+             <div id="group-info-btn" class="chat-header-icon">
+    <i class="fas fa-users"></i>
+</div>
+
             <div id="groups-tab" class="tab-content">
                 <div class="tab-header">
                     <h3>Your Groups</h3>
@@ -161,6 +165,10 @@
                     <div class="no-groups">No groups yet. Create your first group!</div>
                 </div>
             </div>
+            <div id="group-info-modal" class="modal">
+    <!-- members, description, leave group etc -->
+</div>
+
 
             <!-- Contacts Tab -->
             <div id="contacts-tab" class="tab-content">
@@ -178,15 +186,19 @@
                     <div class="no-contacts">No contacts yet. Add some friends!</div>
                 </div>
             </div>
+            
         </main>
+        
 
         <!-- Chat Window -->
+         
         <div id="chat-window" class="chat-window hidden">
             <div class="chat-header">
                 <button class="back-btn" id="back-to-chats"><i class="fas fa-arrow-left"></i></button>
                 <div class="chat-info">
                     <img id="chat-avatar" src="" alt="Avatar" class="clickable-profile-pic">
                     <div>
+                        
                         <h4 id="chat-name">Loading...</h4>
                         <span id="chat-status">Online</span>
                         <div id="typing-indicator" class="typing-indicator hidden">
@@ -209,7 +221,7 @@
             <div class="message-input-container">
                 <div class="attachment-options">
                     <button class="attachment-btn" id="media-attachment-btn">
-                        <i class="fas fa-image"></i>
+                        
                     </button>
                     <button class="attachment-btn" id="file-attachment-btn">
                         <i class="fas fa-file"></i>
@@ -245,6 +257,131 @@
                 <h2>Premium Settings</h2>
                 <button class="close-modal">&times;</button>
             </div>
+
+<!-- Privacy Policy Modal -->
+<div id="privacy-modal" class="modal">
+    <div class="modal-content neon-border">
+        <div class="modal-header">
+            <h2>Privacy Policy</h2>
+            <button class="close-privacy-modal">&times;</button>
+        </div>
+
+        <div class="modal-body scrollable">
+
+            <h3>1. Introduction</h3>
+            <p>
+                Welcome to <strong>NeonChat</strong>. This Privacy Policy explains how we collect, use, store,
+                and protect your information when you use our messaging application.  
+                By creating an account or using the app, you agree to the terms described in this policy.
+            </p>
+
+            <h3>2. Information We Collect</h3>
+
+            <h4>2.1 Account Information</h4>
+            <p>
+                - Email Address (required for login & verification)<br>
+                - Password (encrypted and never visible to anyone)<br>
+                - Username (used for adding friends)<br>
+                - Profile details such as name, avatar, and bio
+            </p>
+
+            <h4>2.2 User Content</h4>
+            <p>
+                - Messages you send to friends<br>
+                - Group messages<br>
+                - Media files (images, videos, documents) shared in chats
+            </p>
+
+            <h4>2.3 Device Information</h4>
+            <p>
+                - Device type, OS, app version<br>
+                - Basic diagnostic logs for app functionality
+            </p>
+
+            <h4>2.4 Safety Monitoring (Anti-Abuse System)</h4>
+            <p>
+                To keep the platform safe, our system may automatically analyze messages for:
+                <br>• Threatening or abusive language  
+                <br>• Blackmail, extortion, or harmful behavior  
+                <br>• Highly unusual or suspicious conversation patterns  
+                <br><br>
+                <strong>No human reads private messages.</strong>  
+                Automated systems only flag and notify the moderation team or the account owner if severe harm or criminal activity is detected.
+            </p>
+
+            <h3>3. How We Use Your Information</h3>
+            <p>
+                - To create and manage your account<br>
+                - To allow friend search using usernames<br>
+                - To enable 1-to-1 and group messaging<br>
+                - To provide real-time chat functionality<br>
+                - To maintain app security and prevent abuse<br>
+                - To notify users about dangerous or harmful communication behaviors
+            </p>
+
+            <h3>4. Data Storage & Security</h3>
+            <p>
+                - All messages are securely stored using encrypted cloud storage.<br>
+                - Passwords are hashed and cannot be retrieved.<br>
+                - Your account data is never sold or shared with third parties.<br>
+                - We use strict access controls & data protection mechanisms.
+            </p>
+
+            <h3>5. Your Rights</h3>
+            <p>
+                - Access your account information at any time<br>
+                - Request deletion of your account & messages<br>
+                - Update or edit profile details<br>
+                - Report users for harmful or abusive behavior
+            </p>
+
+            <h3>6. Prohibited Activities</h3>
+            <p>
+                The following actions will result in account warning, suspension, or permanent ban:
+                <br>• Blackmail or extortion  
+                <br>• Harassment, threats, or abusive chat behavior  
+                <br>• Impersonation or identity fraud  
+                <br>• Sharing illegal or harmful content  
+                <br>• Encouraging self-harm or harm to others  
+            </p>
+
+            <h3>7. Automated Alerts for Harmful Behavior</h3>
+            <p>
+                If our system detects extreme or dangerous chat patterns such as:
+                <br>• Blackmail attempts  
+                <br>• Terrorizing someone  
+                <br>• Severe harassment  
+                <br><br>
+                A safety alert may be sent:
+                <br>• To the moderation team  
+                <br>• Or to the user’s registered email (depending on severity)  
+                <br><br>
+                This feature exists to prevent serious harm and protect users.
+            </p>
+
+            <h3>8. Children’s Privacy</h3>
+            <p>
+                NeonChat is not intended for users under 13 years of age.  
+                If we discover an underage account, it may be removed for safety reasons.
+            </p>
+
+            <h3>9. Changes to This Privacy Policy</h3>
+            <p>
+                We may update this policy occasionally.  
+                Continued use of the app means you accept the updated terms.
+            </p>
+
+            <h3>10. Contact Us</h3>
+            <p>
+                For privacy or safety concerns, you can contact us anytime at:<br>
+                <strong>support@yourapp.com</strong>
+            </p>
+
+        </div>
+    </div>
+</div>
+
+
             <div class="modal-body">
                 <!-- Profile Settings at Top -->
                 <div class="profile-settings-section">
@@ -273,7 +410,13 @@
                         <button type="submit" class="neon-btn">Save Changes</button>
                     </form>
                 </div>
-
+                    <!-- Privacy Policy Button -->
+<div class="privacy-policy-btn-container">
+    <button id="privacy-policy-btn" class="neon-btn-small" style="margin-top:15px; width:100%;">
+        Privacy Policy
+    </button>
+</div>
+  
                 <!-- Settings Tabs -->
                 <div class="settings-tabs">
                     <div class="settings-tab active" data-tab="avatars">Avatar Store</div>
@@ -367,6 +510,10 @@
     </div>
 
     <!-- New Chat Modal -->
+     <button id="group-info-btn" class="group-info-button">
+    <i class="fas fa-users"></i>
+</button>
+
     <div id="new-chat-modal" class="modal">
         <div class="modal-content neon-border">
             <div class="modal-header">
@@ -758,6 +905,40 @@
             </div>
         </div>
     </div>
+    <!-- Create Group Modal -->
+<div id="new-group-modal" class="modal">
+    <div class="modal-content neon-border">
+
+        <h2>Create New Group</h2>
+
+        <!-- Group Avatar -->
+        <div class="group-avatar-section">
+            <img id="group-avatar-preview" style="display:none">
+            <div id="group-default-avatar" class="default-avatar">+</div>
+
+            <div class="group-avatar-options">
+                <div class="group-avatar-option active" data-type="default">Default</div>
+                <div class="group-avatar-option" data-type="avatar">My Avatars</div>
+                <div class="group-avatar-option" data-type="gallery">Upload</div>
+            </div>
+
+            <input type="file" id="group-avatar-input" style="display:none">
+            <button id="browse-avatars-btn" style="display:none">Select Avatar</button>
+        </div>
+
+        <label>Group Name</label>
+        <input type="text" id="group-name">
+
+        <label>Description</label>
+        <textarea id="group-description"></textarea>
+
+        <h3>Select Members</h3>
+        <div id="group-members-list" class="members-list"></div>
+
+        <button id="create-group-btn" class="primary-btn">Create Group</button>
+    </div>
+</div>
+
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
