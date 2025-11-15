@@ -3171,99 +3171,38 @@ body {
     font-size: 0.8rem;
     color: #aaa;
 }
-/* Asteroid Animation Styles */
-@keyframes asteroidCrash {
-    0% {
-        transform: translate(0, 0) rotate(0deg);
-        opacity: 1;
-    }
-    50% {
-        transform: translate(calc(50vw - 50px), calc(50vh - 50px)) rotate(180deg);
-        opacity: 0.8;
-    }
-    100% {
-        transform: translate(calc(100vw - 100px), calc(100vh - 100px)) rotate(360deg);
-        opacity: 0;
-    }
-}
-
-@keyframes explosionEffect {
-    0% {
-        transform: translate(-50%, -50%) scale(0);
-        opacity: 1;
-    }
-    50% {
-        transform: translate(-50%, -50%) scale(1.5);
-        opacity: 0.8;
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(2);
-        opacity: 0;
-    }
-}
-
-@keyframes chatDestruction {
-    0% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.1);
-        background: rgba(255, 0, 0, 0.3);
-    }
-    100% {
-        transform: scale(0);
-        opacity: 0;
-    }
-}
-
-.asteroid {
-    font-size: 3rem;
-    text-shadow: 0 0 20px #ff0000, 0 0 40px #ff5500;
-}
-
-.explosion {
-    font-size: 4rem;
-    text-shadow: 0 0 30px #ffff00, 0 0 60px #ffaa00;
-}
-
-.cosmic-delete {
-    background: linear-gradient(45deg, #ff0000, #ff5500) !important;
-    border: 2px solid #ffaa00 !important;
-    animation: cosmicPulse 2s infinite;
-}
-
-@keyframes cosmicPulse {
-    0%, 100% {
-        box-shadow: 0 0 5px #ff0000;
-    }
-    50% {
-        box-shadow: 0 0 20px #ff5500, 0 0 30px #ffaa00;
-    }
-}
-
-/* Enhanced Delete Button */
+/* Clean & Professional Delete Button */
 .delete-chat-btn {
-    background: rgba(255, 0, 0, 0.2);
-    border: 1px solid #ff4444;
-    color: #ff4444;
-    width: 35px;
-    height: 35px;
+    background: transparent;
+    border: none;
+    color: #d32f2f; /* professional red */
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     cursor: pointer;
-    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: 10px;
+    transition: all 0.2s ease-in-out;
 }
 
+.delete-chat-btn i {
+    font-size: 16px;
+}
+
+/* Hover effect – subtle, not glowing */
 .delete-chat-btn:hover {
-    background: #ff4444;
-    color: white;
-    box-shadow: 0 0 15px #ff4444;
+    background: rgba(211, 47, 47, 0.15);
+    color: #b71c1c;
     transform: scale(1.1);
 }
+
+/* Active click effect */
+.delete-chat-btn:active {
+    transform: scale(0.95);
+    background: rgba(211, 47, 47, 0.25);
+}
+
 
 /* Hindi Sticker Styles */
 .sticker-store-item.hindi {
@@ -3354,3 +3293,4 @@ body {
     border-radius: 15px;
     z-index: 2;
 }
+
