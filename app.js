@@ -18,6 +18,7 @@ const db = firebase.firestore();
 const storage = firebase.storage();
 
 // App State
+let userCache = {};
 let currentUser = null;
 let currentChatId = null;
 let currentChatType = null;
@@ -341,6 +342,8 @@ function setupEventListeners() {
     // Groups
     elements.newGroupBtn.addEventListener('click', openNewGroupModal);
     elements.createGroupBtn.addEventListener('click', createGroup);
+    elements.groupInfoModal
+
     
     // Group Avatar Options
     document.querySelectorAll('.group-avatar-option').forEach(option => {
@@ -363,9 +366,7 @@ function setupEventListeners() {
         elements.stickerPanel.classList.add('hidden');
     });
     
-    // Media Attachments
-    elements.mediaAttachmentBtn.addEventListener('click', () => attachMedia('image/*,video/*'));
-    elements.fileAttachmentBtn.addEventListener('click', () => attachMedia('*'));
+   
     
     // Search
     elements.searchInput.addEventListener('input', handleSearch);
@@ -756,74 +757,82 @@ function setupRealtimeListeners() {
     // Load stories with real-time updates
     loadStoriesRealtime();
 }
+let chatsUnsubscribe = null; // keep this at top level
 
-// Enhanced Chat System - Permanent Storage with Delete Option
 function loadChatsRealtime() {
     if (!currentUser) return;
-    
-    const chatsUnsubscribe = db.collection('chats')
+
+    // Clear OLD realtime listener (correct way)
+    if (chatsUnsubscribe) {
+        chatsUnsubscribe();
+        chatsUnsubscribe = null;
+    }
+
+    // Add NEW listener
+    chatsUnsubscribe = db.collection('chats')
         .where('users', 'array-contains', currentUser.uid)
         .orderBy('lastUpdated', 'desc')
         .onSnapshot((snapshot) => {
             allChats = snapshot.docs;
             updateChatsListRealtime(allChats);
         });
-    
-    unsubscribeFunctions.push(chatsUnsubscribe);
 }
 
-// Update the delete chat button in updateChatsListRealtime function
+
 function updateChatsListRealtime(chatDocs) {
     const chatsList = elements.chatsList;
     chatsList.innerHTML = '';
-    
+
     if (chatDocs.length === 0) {
         chatsList.innerHTML = '<div class="no-chats">No chats yet. Start a new conversation!</div>';
         return;
     }
-    
-    chatDocs.forEach(async (doc) => {
+
+    chatDocs.forEach((doc) => {
         const chat = doc.data();
         const partnerId = chat.users.find(id => id !== currentUser.uid);
-        
-        try {
-            const userDoc = await db.collection('users').doc(partnerId).get();
-            if (userDoc.exists) {
-                const userData = userDoc.data();
-                const chatItem = document.createElement('div');
-                chatItem.className = 'chat-item';
-                chatItem.dataset.chatId = doc.id;
-                chatItem.innerHTML = `
-                    <img src="${userData.avatar}" alt="${userData.name}" class="clickable-profile-pic">
-                    <div class="chat-info">
-                        <h4>${userData.name}</h4>
-                        <p>${chat.lastMessage || 'No messages yet'}</p>
-                    </div>
-                    <div class="chat-time">${formatChatTime(chat.lastUpdated)}</div>
-                    <button class="delete-chat-btn cosmic-delete" data-chat-id="${doc.id}">
-                        <i class="fas fa-meteor"></i>
-                    </button>
-                `;
-                chatItem.addEventListener('click', (e) => {
-                    if (!e.target.closest('.delete-chat-btn')) {
-                        startChat(partnerId, userData);
-                    }
-                });
-                
-                // Add delete functionality with asteroid animation
-                const deleteBtn = chatItem.querySelector('.delete-chat-btn');
-                deleteBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    deleteChat(doc.id);
-                });
-                
-                chatsList.appendChild(chatItem);
+
+        // ⛔ STOP SLOW FIREBASE READS HERE
+        // const userDoc = await db.collection('users').doc(partnerId).get();
+
+        // ✅ USE CACHED USERS (INSTANT)
+        const userDoc = allUsers?.find(u => u.id === partnerId);
+        if (!userDoc) return;
+
+        const userData = userDoc.data();
+
+        const chatItem = document.createElement('div');
+        chatItem.className = 'chat-item';
+        chatItem.dataset.chatId = doc.id;
+
+        chatItem.innerHTML = `
+            <img src="${userData.avatar}" alt="${userData.name}" class="clickable-profile-pic">
+            <div class="chat-info">
+                <h4>${userData.name}</h4>
+                <p>${chat.lastMessage || 'No messages yet'}</p>
+            </div>
+            <div class="chat-time">${formatChatTime(chat.lastUpdated)}</div>
+            <button class="delete-chat-btn cosmic-delete" data-chat-id="${doc.id}">
+                <i class="fas fa-meteor"></i>
+            </button>
+        `;
+
+        chatItem.addEventListener('click', (e) => {
+            if (!e.target.closest('.delete-chat-btn')) {
+                startChat(partnerId, userData);
             }
-        } catch (error) {
-            console.error('Error loading chat user:', error);
-        }
+        });
+
+        const deleteBtn = chatItem.querySelector('.delete-chat-btn');
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteChat(doc.id);
+        });
+
+        chatsList.appendChild(chatItem);
     });
 }
+
 // Enhanced Delete Chat with Asteroid Animation
 async function deleteChat(chatId) {
     if (confirm('Are you sure you want to delete this chat? All messages will be permanently deleted.')) {
@@ -1013,9 +1022,7 @@ function switchTab(tabId) {
     });
     
     switch(tabId) {
-        case 'chats':
-            loadChatsRealtime();
-            break;
+       
         case 'groups':
             loadGroups();
             break;
@@ -1348,6 +1355,7 @@ async function handleLogout() {
         console.error('Logout error:', error);
     }
 }
+
 
 // Chat Functions
 function getChatId(uid1, uid2) {
@@ -1892,7 +1900,8 @@ async function uploadMedia(file) {
                     await db.collection('chats').doc(currentChatId).collection('messages').add(messageData);
                     await db.collection('chats').doc(currentChatId).update({
                         lastMessage: fileType === 'image' ? '📷 Image' : fileType === 'video' ? '🎥 Video' : '📄 File',
-                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                       lastUpdated: new Date()
+
                     });
                 } else {
                     await db.collection('groups').doc(currentChatId).collection('messages').add(messageData);
@@ -2280,6 +2289,8 @@ function loadChatTheme() {
 }
 
 // Group Functions
+document.getElementById("create-group-btn").addEventListener("click", createGroup);
+
 async function openNewGroupModal() {
     openModal(elements.newGroupModal);
     loadAvailableGroupMembers();
@@ -2530,36 +2541,37 @@ async function openGroupInfo(groupId) {
     }
 }
 
-// Load Group Members
+// Load Group Members (FAST – No Firebase Delay)
 async function loadGroupMembers(groupId, groupData) {
     const membersList = elements.groupInfoMembersList;
     membersList.innerHTML = '';
-    
+
     if (!groupData.members || groupData.members.length === 0) return;
-    
+
+    // allUsers is already loaded by real-time listener
     for (const memberId of groupData.members) {
-        try {
-            const userDoc = await db.collection('users').doc(memberId).get();
-            if (userDoc.exists) {
-                const userData = userDoc.data();
-                const isAdmin = groupData.admins && groupData.admins.includes(memberId);
-                
-                const memberItem = document.createElement('div');
-                memberItem.className = 'contact-item';
-                memberItem.innerHTML = `
-                    <img src="${userData.avatar}" alt="${userData.name}" class="clickable-profile-pic">
-                    <div class="contact-info">
-                        <h4>${userData.name} ${isAdmin ? '(Admin)' : ''}</h4>
-                        <p>@${userData.username}</p>
-                    </div>
-                `;
-                membersList.appendChild(memberItem);
-            }
-        } catch (error) {
-            console.error('Error loading member:', error);
-        }
+
+        // Get user data from cached snapshot
+        const userDoc = allUsers?.find(u => u.id === memberId);
+        if (!userDoc) continue;
+
+        const userData = userDoc.data();
+        const isAdmin = groupData.admins && groupData.admins.includes(memberId);
+
+        const memberItem = document.createElement('div');
+        memberItem.className = 'contact-item';
+        memberItem.innerHTML = `
+            <img src="${userData.avatar}" alt="${userData.name}" class="clickable-profile-pic">
+            <div class="contact-info">
+                <h4>${userData.name} ${isAdmin ? '(Admin)' : ''}</h4>
+                <p>@${userData.username}</p>
+            </div>
+        `;
+
+        membersList.appendChild(memberItem);
     }
 }
+
 
 // Exit Group
 async function exitGroup() {
@@ -3462,7 +3474,7 @@ function initializeStickers() {
         { id: 2101, text: '🏠💼', name: 'Ghar Wapsi', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-sticker99' },
         { id: 2102, text: '👨‍👩‍👧‍👦🎉', name: 'Family Function', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-sticker99' },
         { id: 2103, text: '💑🏠', name: 'Rishta Aaya Hai', category: 'premium', price: 99, razorpayLink: 'https://rzp.io/l/neonchat-sticker99' },
-        
+
         // Special & Unique (10)
         { id: 901, text: '🔮✨', name: 'Future Dekhte Hai', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
         { id: 902, text: '🎭🃏', name: 'Joker Card', category: 'premium', price: 39, razorpayLink: 'https://rzp.io/l/neonchat-sticker39' },
@@ -4079,6 +4091,78 @@ window.addEventListener('beforeunload', async () => {
         });
     }
 });
+// Existing bottom code here...
+
+// Paste Step 3 here 👇
+// About App modal elements
+const aboutBtn = document.getElementById("about-app-btn");
+const aboutModal = document.getElementById("about-modal");
+const closeAboutModal = document.querySelector(".close-about-modal");
+
+aboutBtn.addEventListener("click", () => {
+    aboutModal.style.display = "flex";
+});
+
+closeAboutModal.addEventListener("click", () => {
+    aboutModal.style.display = "none";
+});
+
+window.addEventListener("click", (e) => {
+    if (e.target === aboutModal) {
+        aboutModal.style.display = "none";
+    }
+});
+// Privacy Policy Modal
+const privacyBtn = document.getElementById("privacy-policy-btn");
+const privacyModal = document.getElementById("privacy-modal");
+const closePrivacyBtn = document.querySelector(".close-privacy-modal");
+
+// Open
+privacyBtn.addEventListener("click", () => {
+    privacyModal.style.display = "flex";
+});
+
+// Close
+closePrivacyBtn.addEventListener("click", () => {
+    privacyModal.style.display = "none";
+});
+
+// Click outside to close
+window.addEventListener("click", (e) => {
+    if (e.target === privacyModal) {
+        privacyModal.style.display = "none";
+    }
+});
+const groupInfoBtn = document.getElementById('group-info-btn');
+
+if (groupInfoBtn) {
+    groupInfoBtn.addEventListener('click', () => {
+        if (currentChatType === 'group' && currentChatId) {
+            openGroupInfo(currentChatId);
+        }
+    });
+}
+// Make group header clickable to open group info
+elements.chatAvatar.addEventListener("click", () => {
+    if (currentChatType === "group") {
+        openGroupInfo(currentChatId);
+    }
+});
+
+elements.chatName.addEventListener("click", () => {
+    if (currentChatType === "group") {
+        openGroupInfo(currentChatId);
+    }
+});
+
+elements.chatStatus.addEventListener("click", () => {
+    if (currentChatType === "group") {
+        openGroupInfo(currentChatId);
+    }
+});
+
+
+
 
 // Export functions for global access
 window.openMediaViewer = openMediaViewer;
